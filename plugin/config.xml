@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plugin>
+	<name>MobileMura</name>
+	<package>mobilemura</package>
+	<loadPriority>5</loadPriority>
+	<version>0.5.17</version>
+	<provider>Guust Nieuwenhuis</provider>
+	<providerURL>http://www.lagaffe.be</providerURL>
+	<category>Application</category>
+	<settings />
+	<EventHandlers>
+		<eventHandler event="onAfterContentSave" component="eventHandlers.onAfterContentSave" persist="true" />
+		<eventHandler event="onContentEdit" component="eventHandlers.onContentEdit" persist="true" />
+		<eventHandler event="standardMobileHandler" component="eventHandlers.standardMobileHandler" persist="true" />
+	</EventHandlers>
+	<DisplayObjects location="global">
+		<displayObject name="Mobile switcher" displayobjectfile="displayObjects/mobileSwitcher.cfm" />
+	</DisplayObjects>
+</plugin>
