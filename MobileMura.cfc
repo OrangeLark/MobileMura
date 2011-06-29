@@ -18,20 +18,7 @@ See the License for the specific language governing permissions and
 limitations under the License. 
 --->
 
-<cfcomponent extends="mura.plugin.pluginGenericEventHandler">
-
-	<cffunction name="standardMobileHandler" output="false" returntype="any">
-		<cfargument name="event" />
-		
-		<cfset updateTemplate($.content()) />
-		<cfset updateTheme($) />
-
-		<cfset renderer.showAdminToolbar=false>
-		<cfset renderer.showMemberToolbar=false>
-		<cfset renderer.showEditableObjects=false>
-		
-		<cfreturn />
-	</cffunction>
+<cfcomponent>
 	
 	<cffunction name="updateTemplate" output="false" returntype="any" access="public" >
 		<cfargument name="contentBean" />
