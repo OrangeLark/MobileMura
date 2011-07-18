@@ -32,7 +32,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 				<ul>
 					<li class="first<cfif rc.action eq 'admin:main.default'> active</cfif>"><a href="#buildURL('admin:main')#">Main</a></li>
 					<li<cfif rc.action eq 'admin:settings.settings'> class="active"</cfif>><a href="#buildURL('admin:settings.settings')#">Settings</a></li>
-					<li class="last"><a href="#buildURL('admin:main.help')#">Help</a></li>
+					<li class="last"><a href="#buildURL('admin:main.faq')#">FAQ</a></li>
 				</ul>
 			</div>
 		</div>

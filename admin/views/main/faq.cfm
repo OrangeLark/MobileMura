@@ -25,6 +25,9 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 --->
 </cfsilent>
 <cfoutput>
-	<h3>Help</h3>	
-	<p>...</p>
+	<h3>FAQ</h3>
+	<h4>Why a different theme?</h4>
+	<p>Good question! You can do a lot of mobile specific layouting in your css files, but you won't be able to do mobile specific rendering. With a different theme you can write mobile specific display objects, resource bundles, create an adapted contentRenderer and eventHandler, use multiple templates, etc.</p>
+	<h4>I want to your the same theme for both desktop and mobile devices but different templates.</h4>
+	<p>Select the desktop theme as the mobile theme in the mobileMura settings and choose a different template for mobile devices in the "mobileMura" tab located in the item details.</p>
 </cfoutput>
