@@ -25,7 +25,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 --->
 </cfsilent>
 <cfoutput>
-	<p>Thanks for installing mobileMura!</p>
+	<p>Thank you for installing mobileMura!</p>
 	<h3>What's next?</h3>
 	<h4>Set a mobile theme for your website</h4>
 	<p>Select a different theme to be used when a visitor browses your website from a mobile device.</p>
