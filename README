@@ -1,0 +1,12 @@
+
+# WHAT?
+
+MobileMura is a plugin that adds advanced mobile features to Mura CMS.
+
+# WHY?
+
+Mobile devices are all around in todays world and on almost all of them you can experience the full internet. But sometimes you want to improve the user experience by optimizing your website for mobile devices.
+
+A great example is the website deredactie.be and its mobile version m.deredactie.be of the Flemish Public Broadcaster VRT. The content behind the website is the same but on the mobile version they just want to keep the basic news.
+
+With version 5.4, Mura CMS brings basic support for mobile devices. They allow you to have a specific template (mobile.cfm) that will be used to render the website for mobile devices. But when you want to go further with your optimization, you might need to customize display objects, use specific resource bundles, create an adapted contentRenderer and eventHandler, use multiple templates, etc. With MobileMura you'll be able to do all of this and more!
