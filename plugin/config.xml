@@ -3,7 +3,7 @@
 	<name>MobileMura</name>
 	<package>MobileMura</package>
 	<loadPriority>5</loadPriority>
-	<version>0.6.50</version>
+	<version>1.0.0</version>
 	<provider>Guust Nieuwenhuis</provider>
 	<providerURL>http://www.lagaffe.be</providerURL>
 	<category>Application</category>
