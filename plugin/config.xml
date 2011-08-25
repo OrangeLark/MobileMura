@@ -23,7 +23,7 @@ limitations under the License.
 	<package>MobileMura</package>
 	<directoryFormat>packageOnly</directoryFormat>
 	<loadPriority>5</loadPriority>
-	<version>1.0.0</version>
+	<version>1.1.0</version>
 	<provider>Guust Nieuwenhuis</provider>
 	<providerURL>http://www.lagaffe.be</providerURL>
 	<category>Application</category>
