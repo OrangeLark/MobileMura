@@ -86,19 +86,25 @@ limitations under the License.
 		<cfreturn />
 	</cffunction>
 	
+
 	<cffunction name="updateTheme" output="false" returntype="any">
 		<cfargument name="MuraScope" type="Any" required="true">
-
-		<cflog log="MobileMura" type="information" text="MobileTheme: #getMobileMuraData(session.siteid).getMobileTheme()#" />
-
+		<!---<cflog log="MobileMura" type="information" text="MobileTheme: #getMobileMuraData(session.siteid).getMobileTheme()#" />--->
 		<cfif Len(getMobileMuraData(session.siteid).getMobileTheme())>
-			<cflog log="MobileMura" type="information" text="entered cfif" />
+			<!---<cflog log="MobileMura" type="information" text="entered cfif" />--->
 			<cfset MuraScope.event("altTheme",getMobileMuraData(session.siteid).getMobileTheme()) />
-			<cflog log="MobileMura" type="information" text="altTheme: #MuraScope.event('altTheme')#" />
+			<cfif fileExists(expandPath(MuraScope.siteConfig('themeIncludePath')) & "/contentRenderer.cfc" )>
+				<cfset themeRenderer=createObject("component","#MuraScope.siteConfig('themeAssetMap')#.contentRenderer").init()>
+				<cfset themeRenderer.injectMethod("mura",MuraScope)>
+				<cfset themeRenderer.injectMethod("$",MuraScope)>
+				<cfset themeRenderer.injectMethod("event",MuraScope.event())>
+				<cfset MuraScope.event("themeRenderer",themeRenderer)>
+			</cfif>
+			<!---<cflog log="MobileMura" type="information" text="altTheme: #MuraScope.event('altTheme')#" />--->
 		</cfif>
-		
 		<cfreturn />
 	</cffunction>
+
 	
 	<cffunction name="getMobileMuraData" output="false" returntype="any">
 		<cfargument name="siteID" type="Any" required="true">

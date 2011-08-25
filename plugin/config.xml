@@ -21,6 +21,7 @@ limitations under the License.
 <plugin>
 	<name>MobileMura</name>
 	<package>MobileMura</package>
+	<directoryFormat>packageOnly</directoryFormat>
 	<loadPriority>5</loadPriority>
 	<version>1.0.0</version>
 	<provider>Guust Nieuwenhuis</provider>
