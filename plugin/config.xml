@@ -23,7 +23,7 @@ limitations under the License.
 	<package>MobileMura</package>
 	<directoryFormat>packageOnly</directoryFormat>
 	<loadPriority>5</loadPriority>
-	<version>1.1.0</version>
+	<version>1.1.1</version>
 	<provider>Guust Nieuwenhuis</provider>
 	<providerURL>http://www.lagaffe.be</providerURL>
 	<category>Application</category>
@@ -31,7 +31,6 @@ limitations under the License.
 	<EventHandlers>
 		<eventHandler event="onApplicationLoad" component="event.pluginEventHandler" persist="true" />
 		<eventHandler event="standardMobileHandler" component="event.pluginEventHandler" persist="true" />
-		<eventHandler event="onAfterContentSave" component="event.pluginEventHandler" persist="true" />
 		<eventHandler event="onContentEdit" component="event.pluginEventHandler" persist="true" />
 	</EventHandlers>
 	<DisplayObjects location="global">

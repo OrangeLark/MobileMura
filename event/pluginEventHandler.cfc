@@ -71,16 +71,6 @@ limitations under the License.
 		<cfreturn />
 	</cffunction>
 
-	<cffunction name="onAfterContentSave" returntype="any" output="true">
-		<cfargument name="event" />
-		
-		<cfif Len($.event("mobiletemplate"))>
-			<cfset $.content("mobiletemplate",$.event("mobiletemplate")) />
-		</cfif>
-		
-		<cfreturn />
-	</cffunction>
-
 	<cffunction name="onContentEdit" returntype="any" output="true">
 		<cfargument name="event" />
 		
