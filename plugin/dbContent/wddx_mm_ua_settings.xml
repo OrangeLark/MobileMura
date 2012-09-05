@@ -1,0 +1,1 @@
+<wddxPacket version='1.0'><header/><data><recordset rowCount='0' fieldNames='mm_ua_settings_id,site_id,name,ua_string,theme' type='coldfusion.sql.QueryTable'><field name='mm_ua_settings_id'></field><field name='site_id'></field><field name='name'></field><field name='ua_string'></field><field name='theme'></field></recordset></data></wddxPacket>

@@ -23,15 +23,17 @@ limitations under the License.
 	<package>MobileMura</package>
 	<directoryFormat>packageOnly</directoryFormat>
 	<loadPriority>5</loadPriority>
-	<version>1.1.1</version>
+	<version>2.0</version>
 	<provider>Guust Nieuwenhuis</provider>
 	<providerURL>http://www.lagaffe.be</providerURL>
 	<category>Application</category>
 	<settings />
 	<EventHandlers>
 		<eventHandler event="onApplicationLoad" component="event.pluginEventHandler" persist="true" />
+		<eventHandler event="onSiteRequestStart" component="event.pluginEventHandler" persist="true" />
 		<eventHandler event="standardMobileHandler" component="event.pluginEventHandler" persist="true" />
 		<eventHandler event="onContentEdit" component="event.pluginEventHandler" persist="true" />
+		<eventHandler event="onAfterContentSave" component="event.pluginEventHandler" persist="true" />
 	</EventHandlers>
 	<DisplayObjects location="global">
 		<DisplayObject name="MobileSwitcher" component="public.display.displayManager" displaymethod="mobileSwitcher" persist="false" />

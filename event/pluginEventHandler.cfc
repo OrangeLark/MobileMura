@@ -43,7 +43,10 @@ limitations under the License.
 
 	<cffunction name="onSiteRequestStart" output="false">
         <cfargument name="$" required="true" hint="mura scope" />
-        <cfset $[variables.framework.applicationKey] = this />        
+        <cfset $[variables.framework.applicationKey] = this />
+		
+		<!--- add logic --->
+		
     </cffunction>
 
 	<cffunction name="onRenderStart" output="false" returntype="any">
@@ -54,11 +57,10 @@ limitations under the License.
 		</cfscript>
 	</cffunction>
 
-	<!--- ********** MobileMura Specific Events ************* --->
-
 	<cffunction name="standardMobileHandler" output="false" returntype="any">
 		<cfargument name="$" />
-		
+
+<!---		
 		<cfset MobileMura = createObject("component","#pluginConfig.getPackage()#.MobileMura") />
 		
 		<cfset MobileMura.updateTemplate($.content()) />
@@ -67,14 +69,43 @@ limitations under the License.
 		<cfset renderer.showAdminToolbar=false>
 		<cfset renderer.showMemberToolbar=false>
 		<cfset renderer.showEditableObjects=false>
-
+--->
 		<cfreturn />
 	</cffunction>
 
 	<cffunction name="onContentEdit" returntype="any" output="true">
-		<cfargument name="event" />
+		<cfargument name="$" />
 		
-		<cfinclude template="../admin/views/onContentEdit/onContentEdit.cfm" />
+		<cfinclude template="onContentEdit.cfm" />
+		
+		<cfreturn />
+	</cffunction>
+
+	<cffunction name="onAfterContentSave" returntype="any" output="true">
+		<cfargument name="$" />
+		
+		<cfset var local = StructNew() />
+		<cfset local.dsn = $.globalConfig().getDatasource() />
+		
+		<cfquery name="local.checkContent" datasource="#local.dsn#" >
+			SELECT	*
+			FROM	mm_content
+			WHERE	content_id = '#$.content().getContentId()#'
+		</cfquery>
+		
+		<cfquery name="insertUpdateContent" datasource="#local.dsn#">
+			<cfif local.checkContent.recordCount>
+				UPDATE	mm_content
+				SET		template = '#$.event("mobiletemplate")#'
+				WHERE	site_id = '#$.content().getSiteId()#'
+				AND		content_id = '#$.content().getContentId()#'
+			<cfelse>
+				INSERT 	INTO mm_content
+				(mm_content_id, site_id, content_id, template)
+				VALUES
+				('#createUUID()#', '#$.content().getSiteId()#', '#$.content().getCOntentId()#', #$.event("mobiletemplate")#)
+			</cfif>
+		</cfquery>
 		
 		<cfreturn />
 	</cffunction>

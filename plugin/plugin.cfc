@@ -30,394 +30,335 @@ limitations under the License.
 	</cffunction>
 	
 	<cffunction name="install" returntype="void" access="public" output="false">
-		<cfset updateSiteExtensions("Page") />
-		<cfset updateSiteExtensions("Portal") />
-		<cfset updateSiteExtensions("Calendar") />
-		<cfset updateSiteExtensions("Gallery") />
-		<cfset updateDataSiteExtensions("Custom") />
-		<cfset super.install() />
+
+		<cfset var local = StructNew()/>
+	
+		<!--- need to check and see if this is already installed ... if so, then abort! --->
+		<cfset local.moduleid = variables.config.getModuleID()/>
+	
+		<!--- comment this out if you want to allow more than 1 installation of this plugin per Mura CMS 
+		install. --->
+		<cfif (val(getInstallationCount()) neq 1)>
+			<cfset variables.config.getPluginManager().deletePlugin(local.moduleid)/>
+		<cfelse>
+			
+			<cfset $ = application.serviceFactory.getBean("muraScope")/>
+			<cfset local.dsn = $.globalConfig().getDatasource() />
+
+			<!--- CREATE TABLES --->
+			<cfset this.createMMUASettingsTable() />
+			<cfset this.createMMContentTable() />
+			<cfset this.createMMValidationTable() />
+			
+			<!--- SETUP SITES --->
+			<cfset this.setupSites(local.dsn) />
+			
+		</cfif>
+		<cfset application.appInitialized = false/>
+
 	</cffunction>
 	
 	<cffunction name="update" returntype="void" access="public" output="false">		
-		<cfset updateSiteExtensions("Page") />
-		<cfset updateSiteExtensions("Portal") />
-		<cfset updateSiteExtensions("Calendar") />
-		<cfset updateSiteExtensions("Gallery") />
-		<cfset updateDataSiteExtensions("Custom") />
-		<cfset super.update() />
+
+		<cfset var local = StructNew()/>
+	
+		<cfscript>
+			// this will be executed by the pluginManager when the plugin is updated.
+			application.appInitialized = false;
+		</cfscript>
+
+		<cfset $ = application.serviceFactory.getBean("muraScope")/>
+		<cfset local.dsn = $.globalConfig().getDatasource() />
+
+		<!--- CREATE TABLES --->
+		<cfset this.createMMUASettingsTable() />
+		<cfset this.createMMContentTable() />
+		<cfset this.createMMValidationTable() />
+		
+		<!--- SETUP SITES --->
+		<cfset this.setupSites(local.dsn) />
+		
 	</cffunction>
 	
-	<cffunction name="delete" returntype="void" access="public" output="false">
-		<cfset deleteSiteExtensions("Page") />
-		<cfset deleteSiteExtensions("Portal") />
-		<cfset deleteSiteExtensions("Calendar") />
-		<cfset deleteSiteExtensions("Gallery") />
-		<cfset deleteDataSiteExtensions("Custom") />
-		<cfset super.delete() />
-	</cffunction>
+	<cffunction name="delete" returntype="void" access="public" output="true">
 
-	<cffunction name="updateSiteExtensions" returntype="void" access="private" output="false">
-		<cfargument name="useType" type="string" required="true">
+		<cfset var local = StructNew()/>
+		
+		<cfdump var="#variables.configBean.getDatasource()#" >
+		<cfabort />
 
-		<cfset var siteStruct = getBean("settingsManager").getSites()>
-		<cfset var siteID = "">
-
-		<cfloop collection="#siteStruct#" item="siteID">
-			<cfset checkExtension(siteID,arguments.useType)>
-		</cfloop>
-	</cffunction>
-
-	<cffunction name="deleteSiteExtensions" returntype="void" access="private" output="false">
-		<cfargument name="useType" type="string" required="true">
-
-		<cfset var siteStruct = getBean("settingsManager").getSites()>
-		<cfset var siteID = "">
-
-		<cfloop collection="#siteStruct#" item="siteID">
-			<cfset deleteExtension(siteID,arguments.useType)>
-		</cfloop>
-	</cffunction>
-
-	<cffunction name="checkExtension" returntype="void" access="private" output="false">
-		<cfargument name="siteID" type="string" required="true">
-		<cfargument name="useType" type="string" required="true">
-
-		<cfset var qExtensions = application.classExtensionManager.getSubTypes(arguments.siteID)>
-		<cfset var sExtension = application.classExtensionManager.getSubTypeByName(arguments.useType,"Default",arguments.siteID)>
-		<cfset var qExtendSets = sExtension.getSetsQuery()>
-
-		<cfif not qExtensions.recordCount>
-			<cfset addExtension(arguments.siteID,arguments.useType)>
-			<cfreturn>
-		</cfif>
-
-		<cfquery dbtype="query" name="selectDefaultExtensionType">
-			SELECT
-				subTypeID
-			FROM
-				qExtensions
-			WHERE
-				type = '#arguments.useType#'
+		<cfquery datasource="#variables.configBean.getDatasource()#" username="#variables.configBean.getDbUsername()#" password="#variables.configBean.getDbPassword()#">
+			DROP TABLE mm_ua_settings
 		</cfquery>
 
-		<cfif not selectDefaultExtensionType.recordCount>
-			<cfset addExtension(arguments.siteID,arguments.useType)>
-			<cfreturn>
-		</cfif>
-
-		<cfquery dbtype="query" name="selectGSMExtendSet">
-			SELECT
-				extendSetID
-			FROM
-				qExtendSets
-			WHERE
-				name = 'MobileMura'
-		</cfquery>
-		
-		<cfif not selectGSMExtendSet.recordCount>
-			<cfset addExtendSet(arguments.siteID,selectDefaultExtensionType.subTypeID)>
-			<cfreturn>
-		</cfif>
-		
-		<cfset checkAttributes(arguments.siteID,selectDefaultExtensionType.subTypeID,selectGSMExtendSet.extendSetID)>
-	</cffunction>
-
-	<cffunction name="deleteExtension" returntype="void" access="private" output="false">
-		<cfargument name="siteID" type="string" required="true">
-		<cfargument name="useType" type="string" required="true">
-
-		<cfset var sExtension = application.classExtensionManager.getSubTypeByName(arguments.useType,"Default",arguments.siteID)>
-		<cfset var sExtendSet = application.classExtensionManager.getSubTypeBean().getExtendSetBean()>
-		<cfset var qExtendSets = sExtension.getSetsQuery()>
-
-		<cfquery dbtype="query" name="selectGSMExtendSetForDelete">
-			SELECT
-				extendSetID
-			FROM
-				qExtendSets
-			WHERE
-				name = 'MobileMura'
+		<cfquery datasource="#variables.configBean.getDatasource()#" username="#variables.configBean.getDbUsername()#" password="#variables.configBean.getDbPassword()#">
+			DROP TABLE mm_content
 		</cfquery>
 
-		<cfoutput query="selectGSMExtendSetForDelete">
-			<cfset sExtendSet = sExtension.loadSet( extendSetID ) />
-			<cfset sExtendSet.delete()>
-		</cfoutput>
-	</cffunction>
-
-	<cffunction name="addExtension" returntype="void" access="private" output="false">
-		<cfargument name="siteID" type="string" required="true">
-		<cfargument name="useType" type="string" required="true">
-		<cfargument name="subTypeID" type="string" required="false" default="#createUUID()#">
-
-		<cfset var newExtensionID = createUUID()>
-		<cfset var sExtension = application.classExtensionManager.getSubTypeByID(arguments.subTypeID)>
-
-		<cfset sExtension.setType(arguments.useType)>
-		<cfset sExtension.setSubType("Default")>
-		<cfset sExtension.setIsActive(1)>
-		<cfset sExtension.setBaseKeyField("contentHistID")>
-		<cfset sExtension.setBaseTable("tcontent")>
-		<cfset sExtension.setDataTable("tclassextenddata")>
-		<cfset sExtension.setSiteID(arguments.siteID)>
-		<cfset sExtension.save()>
-
-		<cfset addExtendSet(arguments.siteID,arguments.subTypeID)>
-	</cffunction>
-
-	<cffunction name="addExtendSet" returntype="void" access="private" output="false">
-		<cfargument name="siteID" type="string" required="true">
-		<cfargument name="subTypeID" required="false" type="string" default="#createUUID()#">
-
-		<cfset var newExtendSetID = createUUID()>
-		<cfset var sExtendSet = application.classExtensionManager.getSubTypeBean().getExtendSetBean()>
-		<cfset var attName = "">
-
-		<cfset sExtendSet.setSubTypeID(arguments.subTypeID)>
-		<cfset sExtendSet.setExtendSetID(newExtendSetID)>
-		<cfset sExtendSet.setName("MobileMura")>
-		<cfset sExtendSet.setOrderNo(0)>
-		<cfset sExtendSet.setIsActive(1)>
-		<cfset sExtendSet.setSiteID(arguments.siteID)>
-		<cfset sExtendSet.setContainer("Custom")>
-		<cfset sExtendSet.save()>
-
-		<cfset checkAttributes(arguments.siteID,arguments.subTypeID,newExtendSetID)>
-	</cffunction>
-
-	<cffunction name="checkAttributes" returntype="void" access="private" output="false">
-		<cfargument name="siteID" type="string" required="true">
-		<cfargument name="subTypeID" type="string" required="true">
-		<cfargument name="extendSetID" type="string" required="true">
-
-		<cfset var sExtension = application.classExtensionManager.getSubTypeByID(arguments.subTypeID)>
-		<cfset var sExtendSet = sExtension.loadSet( arguments.extendSetID ) />
-		<cfset var qExtendAtts = sExtendSet.getAttributesQuery() />
+<!---
+		<cfset this.deleteMMUASettings() />
+		<cfset this.deleteMMContent() />
+		<cfset this.deleteMMValidation() />
+--->
+		<cfset application.appInitialized = false/>
 		
-		<cfloop list="mobiletemplate" index="attName">
-			<cfquery dbtype="query" name="selectGSMExtendSetAttributes">
-				SELECT
-					attributeID
-				FROM
-					qExtendAtts
-				WHERE
-					name = '#attName#'
-			</cfquery>
-
-			<cfif not selectGSMExtendSetAttributes.recordCount>
-				<cfset addAttribute( arguments.siteID,attName,arguments.extendSetID )>
-			</cfif>
-		</cfloop>
 	</cffunction>
+	
+	<cffunction name="toBundle" returntype="void" access="public" output="false">
 
-	<cffunction name="addAttribute" returntype="void" access="private" output="false">
-		<cfargument name="siteID" type="string" required="true">
-		<cfargument name="useName" type="string" required="true">
-		<cfargument name="extendSetID" required="true">
+		<cfset var local = StructNew()/>
 
-		<cfset var sAttribute = application.classExtensionManager.getSubTypeBean().getExtendSetBean().getattributeBean()>
-		<cfset var templateslist = "" />
-
-		<cfset sAttribute.setExtendSetID(arguments.extendSetID)>
-		<cfset sAttribute.setSiteID(arguments.siteID)>
-
-		<cfswitch expression="#arguments.useName#">
-			<cfcase value="mobiletemplate">
-				<cfset sAttribute.setName("mobiletemplate")>
-				<cfset sAttribute.setLabel("Mobile layout template")>
-				<cfset sAttribute.setHint("Set the mobile layout template")>
-				<cfset sAttribute.setType("SelectBox")>
-				<cfset sAttribute.setDefaultValue("")>
-				<cfset sAttribute.setOptionList("")>
-				<cfset sAttribute.setOptionLabelList("")>
-				<cfset sAttribute.setOrderNo(1)>
-			</cfcase>
-		</cfswitch>
-		<cfset sAttribute.save()>
-	</cffunction>
-
-	<!--- Data --->
-	<cffunction name="updateDataSiteExtensions" returntype="void" access="private" output="false">
-		<cfargument name="useType" type="string" required="true">
-
-		<cfset var siteStruct = getBean("settingsManager").getSites()>
-		<cfset var siteID = "">
-
-		<cfloop collection="#siteStruct#" item="siteID">
-			<cfset checkDataExtension(siteID,arguments.useType)>
-		</cfloop>
-	</cffunction>
-
-	<cffunction name="deleteDataSiteExtensions" returntype="void" access="private" output="false">
-		<cfargument name="useType" type="string" required="true">
-
-		<cfset var siteStruct = getBean("settingsManager").getSites()>
-		<cfset var siteID = "">
-
-		<cfloop collection="#siteStruct#" item="siteID">
-			<cfset deleteDataExtension(siteID,arguments.useType)>
-		</cfloop>
-	</cffunction>
-
-	<cffunction name="checkDataExtension" returntype="void" access="private" output="false">
-		<cfargument name="siteID" type="string" required="true">
-		<cfargument name="useType" type="string" required="true">
-
-		<cfset var qExtensions = application.classExtensionManager.getSubTypes(arguments.siteID)>
-		<cfset var sExtension = application.classExtensionManager.getSubTypeByName(arguments.useType,"MobileMuraData",arguments.siteID)>
-		<cfset var qExtendSets = sExtension.getSetsQuery()>
-
-		<cfif not qExtensions.recordCount>
-			<cfset addDataExtension(arguments.siteID,arguments.useType)>
-			<cfreturn>
-		</cfif>
-
-		<cfquery dbtype="query" name="selectDefaultExtensionType">
-			SELECT
-				subTypeID
-			FROM
-				qExtensions
-			WHERE
-				type = '#arguments.useType#'
-		</cfquery>
-
-		<cfif not selectDefaultExtensionType.recordCount>
-			<cfset addDataExtension(arguments.siteID,arguments.useType)>
-			<cfreturn>
-		</cfif>
-
-		<cfquery dbtype="query" name="selectGSMExtendSet">
-			SELECT
-				extendSetID
-			FROM
-				qExtendSets
-			WHERE
-				name = 'MobileMuraData'
-		</cfquery>
+		<cfset $ = application.serviceFactory.getBean("muraScope")/>
+		<cfset local.dsn = $.globalConfig().getDatasource() />
 		
-		<cfif not selectGSMExtendSet.recordCount>
-			<cfset addDataExtendSet(arguments.siteID,selectDefaultExtensionType.subTypeID)>
-			<cfreturn>
+		<cfset local.dbBundle = $.getPlugin("MobileMura").GETFULLPATH() & "/plugin/dbBundle" />
+		<cfif NOT directoryExists(local.dbBundle)>
+			<cfset directoryCreate(local.dbBundle) />
 		</cfif>
 		
-		<cfset checkDataAttributes(arguments.siteID,selectDefaultExtensionType.subTypeID,selectGSMExtendSet.extendSetID)>
-	</cffunction>
-
-	<cffunction name="deleteDataExtension" returntype="void" access="private" output="false">
-		<cfargument name="siteID" type="string" required="true">
-		<cfargument name="useType" type="string" required="true">
-
-		<cfset var sExtension = application.classExtensionManager.getSubTypeByName(arguments.useType,"MobileMuraData",arguments.siteID)>
-		<cfset var sExtendSet = application.classExtensionManager.getSubTypeBean().getExtendSetBean()>
-		<cfset var qExtendSets = sExtension.getSetsQuery()>
-
-		<cfquery dbtype="query" name="selectGSMExtendSetForDelete">
-			SELECT
-				extendSetID
-			FROM
-				qExtendSets
-			WHERE
-				name = 'MobileMuraData'
-		</cfquery>
-
-		<cfoutput query="selectGSMExtendSetForDelete">
-			<cfset sExtendSet = sExtension.loadSet( extendSetID ) />
-			<cfset sExtendSet.delete()>
-		</cfoutput>
-	</cffunction>
-
-	<cffunction name="addDataExtension" returntype="void" access="private" output="false">
-		<cfargument name="siteID" type="string" required="true">
-		<cfargument name="useType" type="string" required="true">
-		<cfargument name="subTypeID" type="string" required="false" default="#createUUID()#">
-
-		<cfset var newExtensionID = createUUID()>
-		<cfset var sExtension = application.classExtensionManager.getSubTypeByID(arguments.subTypeID)>
-
-		<cfset sExtension.setType(arguments.useType)>
-		<cfset sExtension.setSubType("MobileMuraData")>
-		<cfset sExtension.setIsActive(1)>
-		<cfset sExtension.setBaseKeyField("contentHistID")>
-		<cfset sExtension.setBaseTable("custom")>
-		<cfset sExtension.setDataTable("custom")>
-		<cfset sExtension.setSiteID(arguments.siteID)>
-		<cfset sExtension.save()>
-
-		<cfset addDataExtendSet(arguments.siteID,arguments.subTypeID)>
-	</cffunction>
-
-	<cffunction name="addDataExtendSet" returntype="void" access="private" output="false">
-		<cfargument name="siteID" type="string" required="true">
-		<cfargument name="subTypeID" required="false" type="string" default="#createUUID()#">
-
-		<cfset var newExtendSetID = createUUID()>
-		<cfset var sExtendSet = application.classExtensionManager.getSubTypeBean().getExtendSetBean()>
-		<cfset var attName = "">
-
-		<cfset sExtendSet.setSubTypeID(arguments.subTypeID)>
-		<cfset sExtendSet.setExtendSetID(newExtendSetID)>
-		<cfset sExtendSet.setName("MobileMuraData")>
-		<cfset sExtendSet.setOrderNo(0)>
-		<cfset sExtendSet.setIsActive(1)>
-		<cfset sExtendSet.setSiteID(arguments.siteID)>
-		<cfset sExtendSet.setContainer("MobileMuraData")>
-		<cfset sExtendSet.save()>
-
-		<cfset checkDataAttributes(arguments.siteID,arguments.subTypeID,newExtendSetID)>
-	</cffunction>
-
-	<cffunction name="checkDataAttributes" returntype="void" access="private" output="false">
-		<cfargument name="siteID" type="string" required="true">
-		<cfargument name="subTypeID" type="string" required="true">
-		<cfargument name="extendSetID" type="string" required="true">
-
-		<cfset var sExtension = application.classExtensionManager.getSubTypeByID(arguments.subTypeID)>
-		<cfset var sExtendSet = sExtension.loadSet( arguments.extendSetID ) />
-		<cfset var qExtendAtts = sExtendSet.getAttributesQuery() />
+		<!--- BUNDLE TABLES --->
+		<cfset this.bundleMMUASettings(local.dsn) />
+		<cfset this.bundleMMContent(local.dsn) />
+		<cfset this.bundleMMValidation(local.dsn) />
 		
-		<cfloop list="mobiletemplate" index="attName">
-			<cfquery dbtype="query" name="selectGSMExtendSetAttributes">
-				SELECT
-					attributeID
-				FROM
-					qExtendAtts
-				WHERE
-					name = '#attName#'
-			</cfquery>
-
-			<cfif not selectGSMExtendSetAttributes.recordCount>
-				<cfset addDataAttribute( arguments.siteID,attName,arguments.extendSetID )>
-			</cfif>
-		</cfloop>
 	</cffunction>
+	
+	<cffunction name="fromBundle" returntype="void" access="public" output="false">
 
-	<cffunction name="addDataAttribute" returntype="void" access="private" output="false">
-		<cfargument name="siteID" type="string" required="true">
-		<cfargument name="useName" type="string" required="true">
-		<cfargument name="extendSetID" required="true">
+		<cfset var local = StructNew()/>
 
-		<cfset var sAttribute = application.classExtensionManager.getSubTypeBean().getExtendSetBean().getattributeBean()>
-		<cfset var templateslist = "" />
+		<cfset $ = application.serviceFactory.getBean("muraScope")/>
+		<cfset local.dsn = $.globalConfig().getDatasource() />
+		
+		<cfset local.dbBundle = $.getPlugin("MobileMura").GETFULLPATH() & "/plugin/dbBundle" />
+		<cfif NOT directoryExists(local.dbBundle)>
+			<cfset directoryCreate(local.dbBundle) />
+		</cfif>
 
-		<cfset sAttribute.setExtendSetID(arguments.extendSetID)>
-		<cfset sAttribute.setSiteID(arguments.siteID)>
+		<!--- CREATE TABLES --->
+		<cfset this.createMMUASettingsTable() />
+		<cfset this.createMMContentTable() />
+		<cfset this.createMMValidationTable() />
+		
+		<!--- RESTORE DATA --->
+		<cfset this.restoreMMUASettings(local.dsn) />
+		<cfset this.restoreMMContent(local.dsn) />
+		<cfset this.restoreMMValidation(local.dsn) />
 
-		<cfswitch expression="#arguments.useName#">
-			<cfcase value="mobiletemplate">
-				<cfset sAttribute.setName("MobileTheme")>
-				<cfset sAttribute.setLabel("Mobile theme")>
-				<cfset sAttribute.setHint("Set the mobile theme")>
-				<cfset sAttribute.setType("SelectBox")>
-				<cfset sAttribute.setDefaultValue("")>
-				<cfset sAttribute.setOptionList("")>
-				<cfset sAttribute.setOptionLabelList("")>
-				<cfset sAttribute.setOrderNo(1)>
-			</cfcase>
-		</cfswitch>
-		<cfset sAttribute.save()>
 	</cffunction>
 
 	<!--- *******************************    private    ******************************** --->
+	<cffunction name="createMMUASettingsTable" access="private" returntype="void" output="false" >
+		
+		<cfset var local = StructNew()/>
+		
+		<cfset local.dbUtility = $.getBean("dbUtility") />
+		
+		<cfset local.table = local.dbUtility.setTable('mm_ua_settings') />
+		
+		<cfset local.table.addColumn(column='mm_ua_settings_id', datatype='char', length='35', nullable='false', default='') />
+		<cfset local.table.addColumn(column='site_id', datatype='varchar', length='25', nullable='false', default='') />
+		<cfset local.table.addColumn(column='name', datatype='varchar', length='50', nullable='false', default='') />
+		<cfset local.table.addColumn(column='ua_string', datatype='varchar', length='50', nullable='true', default='') />
+		<cfset local.table.addColumn(column='theme', datatype='varchar', length='50', nullable='false', default='') />
+		
+		<cfset local.table.addPrimaryKey(column='mm_ua_settings_id') />
+	</cffunction>
+	
+	<cffunction name="createMMContentTable" access="private" returntype="void" output="false" >
+		<cfset var local = StructNew()/>
+		
+		<cfset local.dbUtility = $.getBean("dbUtility") />
+		
+		<cfset local.table = local.dbUtility.setTable('mm_content') />
+		
+		<cfset local.table.addColumn(column='mm_content_id', datatype='char', length='35', nullable='false', default='') />
+		<cfset local.table.addColumn(column='site_id', datatype='varchar', length='25', nullable='false', default='') />
+		<cfset local.table.addColumn(column='mm_ua_settings_id', datatype='char', length='35', nullable='false', default='') />
+		<cfset local.table.addColumn(column='content_id', datatype='char', length='35', nullable='false', default='') />
+		<cfset local.table.addColumn(column='template', datatype='varchar', length='50', nullable='false', default='') />
+		
+		<cfset local.table.addPrimaryKey(column='mm_content_id') />
+	</cffunction>
+
+	<cffunction name="createMMValidationTable" access="private" returntype="void" output="false" >
+		
+		<cfset var local = StructNew()/>
+		
+		<cfset local.dbUtility = $.getBean("dbUtility") />
+		
+		<cfset local.table = local.dbUtility.setTable('mm_validation') />
+		
+		<cfset local.table.addColumn(column='site_id', datatype='varchar', length='25', nullable='false', default='') />
+		<cfset local.table.addColumn(column='validation', datatype='varchar', length='50', nullable='false', default='') />
+		<cfset local.table.addColumn(column='theme', datatype='varchar', length='50', nullable='false', default='') />
+		
+		<cfset local.table.addPrimaryKey(column='site_id') />
+	</cffunction>
+
+	<cffunction name="setupSites" access="private" returntype="void" output="false" >
+		<cfargument name="dsn" required="true" >
+		<cfset var local = StructNew()/>
+		
+		<cfset local.installedSites = variables.config.getAssignedSites() />
+		
+		<cfloop query="local.installedSites" >
+
+			<cfquery datasource="#arguments.dsn#" name="local.checkSiteSetup">
+				SELECT	*
+				FROM	mm_validation
+				WHERE	site_id = '#local.installedSites.siteID#'
+			</cfquery>
+			
+			<cfif NOT local.checkSiteSetup.recordCount>
+				<cfquery name="insertMMValidation" datasource="#arguments.dsn#" >
+					INSERT INTO mm_validation (site_id, validation, theme)
+					VALUES
+					('#local.installedSites.siteID#','1','')
+				</cfquery>
+			</cfif>
+		
+		</cfloop>
+	</cffunction>
+
+	<cffunction name="bundleMMUASettings" access="private" returntype="void" output="false" >
+		<cfargument name="dsn" required="true" >
+		<cfset var local = StructNew()/>
+		
+		<cfquery name="local.getMMUASettings" datasource="#arguments.dsn#" >
+			SELECT	*
+			FROM	mm_ua_settings
+		</cfquery>
+		
+		<cfwddx action="cfml2wddx" input="#local.getMMUASettings#" output="local.temp">
+		<cffile action="write" output="#local.temp#" file="dbBundle/wddx_mm_ua_settings.xml" charset="utf-8">
+	</cffunction>
+
+	<cffunction name="bundleMMContent" access="private" returntype="void" output="false" >
+		<cfargument name="dsn" required="true" >
+		<cfset var local = StructNew()/>
+		
+		<cfquery name="local.getMMContent" datasource="#arguments.dsn#" >
+			SELECT	*
+			FROM	mm_content
+		</cfquery>
+		
+		<cfwddx action="cfml2wddx" input="#local.getMMContent#" output="local.temp">
+		<cffile action="write" output="#local.temp#" file="dbBundle/wddx_mm_content.xml" charset="utf-8">
+	</cffunction>
+
+	<cffunction name="bundleMMValidation" access="private" returntype="void" output="false" >
+		<cfargument name="dsn" required="true" >
+		<cfset var local = StructNew()/>
+		
+		<cfquery name="local.getMMValidation" datasource="#arguments.dsn#" >
+			SELECT	*
+			FROM	mm_validation
+		</cfquery>
+		
+		<cfwddx action="cfml2wddx" input="#local.getMMValidation#" output="local.temp">
+		<cffile action="write" output="#local.temp#" file="dbBundle/wddx_mm_validation.xml" charset="utf-8">
+	</cffunction>
+
+	<cffunction name="restoreMMUASettings" access="private" returntype="void" output="false" >
+		<cfargument name="dsn" required="true" >
+		<cfset var local = StructNew()/>
+		
+		<cfquery datasource="#arguments.dsn#" name="truncateMMUASettings">
+			TRUNCATE TABLE mm_ua_settings
+		</cfquery>
+		
+		<cffile action="read" file="dbBundle/wddx_mm_ua_settings.xml" variable="local.importWDDX" charset="utf-8">
+		<cfwddx action="wddx2cfml" input=#local.importWDDX# output="importValue">
+		
+		<cfif importValue.recordcount>
+			<cfquery name="insertMMUASettings" datasource="#arguments.dsn#" >
+				INSERT INTO mm_ua_settings (mm_ua_settings_id, site_id, name, ua_string, theme)
+				VALUES
+				<cfloop query="importValue" >
+				<cfif importValue.CurrentRow NEQ 1>,</cfif>
+				('#importValue.mm_ua_settings_id#','#importValue.site_id#','#importValue.name#','#importValue.ua_string#','#importValue.theme#')
+				</cfloop>
+			</cfquery>
+		</cfif>
+	</cffunction>
+
+	<cffunction name="restoreMMContent" access="private" returntype="void" output="false" >
+		<cfargument name="dsn" required="true" >
+		<cfset var local = StructNew()/>
+		
+		<cfquery datasource="#arguments.dsn#" name="truncateMMContent">
+			TRUNCATE TABLE mm_content
+		</cfquery>
+		
+		<cffile action="read" file="dbBundle/wddx_mm_content.xml" variable="local.importWDDX" charset="utf-8">
+		<cfwddx action="wddx2cfml" input=#local.importWDDX# output="importValue">
+		
+		<cfif importValue.recordcount>
+			<cfquery name="insertMMContent" datasource="#arguments.dsn#" >
+				INSERT INTO mm_content_id (mm_content_id, site_id, mm_ua_settings_id, content_id, template)
+				VALUES
+				<cfloop query="importValue" >
+				<cfif importValue.CurrentRow NEQ 1>,</cfif>
+				('#importValue.mm_content_id#','#importValue.site_id#','#importValue.mm_ua_settings_id#','#importValue.content_id#','#importValue.template#')
+				</cfloop>
+			</cfquery>
+		</cfif>
+	</cffunction>
+
+	<cffunction name="restoreMMValidation" access="private" returntype="void" output="false" >
+		<cfargument name="dsn" required="true" >
+		<cfset var local = StructNew()/>
+		
+		<cfquery datasource="#arguments.dsn#" name="truncateMMValidation">
+			TRUNCATE TABLE mm_validation
+		</cfquery>
+		
+		<cffile action="read" file="dbBundle/wddx_mm_validation.xml" variable="local.importWDDX" charset="utf-8">
+		<cfwddx action="wddx2cfml" input=#local.importWDDX# output="importValue">
+		
+		<cfif importValue.recordcount>
+			<cfquery name="insertMMValidation" datasource="#arguments.dsn#" >
+				INSERT INTO mm_validation (site_id, validation, theme)
+				VALUES
+				<cfloop query="importValue" >
+				<cfif importValue.CurrentRow NEQ 1>,</cfif>
+				('#importValue.site_id#','#importValue.validation#','#importValue.theme#')
+				</cfloop>
+			</cfquery>
+		</cfif>
+	</cffunction>
+	
+	<cffunction name="deleteMMUASettings" access="private" returntype="void" output="false" >
+
+		<cfset var local = StructNew()/>
+		
+		<cfset local.dbUtility = $.getBean("dbUtility") />
+		
+		<cfset local.dbUtility.dropTable('mm_ua_settings') />
+
+	</cffunction>
+	
+	<cffunction name="deleteMMContent" access="private" returntype="void" output="false" >
+
+		<cfset var local = StructNew()/>
+		
+		<cfset local.dbUtility = $.getBean("dbUtility") />
+		
+		<cfset local.dbUtility.dropTable('mm_content') />
+
+	</cffunction>
+	
+	<cffunction name="deleteMMValidation" access="private" returntype="void" output="false" >
+
+		<cfset var local = StructNew()/>
+		
+		<cfset local.dbUtility = $.getBean("dbUtility") />
+		
+		<cfset local.dbUtility.dropTable('mm_validation') />
+
+	</cffunction>
+	
 	<cffunction name="getInstallationCount" access="private" returntype="any" output="false">
 		<cfscript>
 			var qoq = '';
