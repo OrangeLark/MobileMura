@@ -48,7 +48,7 @@ limitations under the License.
 			<!--- CREATE TABLES --->
 			<cfset this.createMMUASettingsTable() />
 			<cfset this.createMMContentTable() />
-			<cfset this.createMMValidationTable() />
+			<cfset this.createMMDetectionTable() />
 			
 			<!--- SETUP SITES --->
 			<cfset this.setupSites(local.dsn) />
@@ -73,7 +73,7 @@ limitations under the License.
 		<!--- CREATE TABLES --->
 		<cfset this.createMMUASettingsTable() />
 		<cfset this.createMMContentTable() />
-		<cfset this.createMMValidationTable() />
+		<cfset this.createMMDetectionTable() />
 		
 		<!--- SETUP SITES --->
 		<cfset this.setupSites(local.dsn) />
@@ -87,63 +87,48 @@ limitations under the License.
 		<cfdump var="#variables.configBean.getDatasource()#" >
 		<cfabort />
 
-		<cfquery datasource="#variables.configBean.getDatasource()#" username="#variables.configBean.getDbUsername()#" password="#variables.configBean.getDbPassword()#">
-			DROP TABLE mm_ua_settings
-		</cfquery>
-
-		<cfquery datasource="#variables.configBean.getDatasource()#" username="#variables.configBean.getDbUsername()#" password="#variables.configBean.getDbPassword()#">
-			DROP TABLE mm_content
-		</cfquery>
-
-<!---
 		<cfset this.deleteMMUASettings() />
 		<cfset this.deleteMMContent() />
-		<cfset this.deleteMMValidation() />
---->
+		<cfset this.deleteMMDetection() />
+
 		<cfset application.appInitialized = false/>
 		
 	</cffunction>
 	
 	<cffunction name="toBundle" returntype="void" access="public" output="false">
+		<cfargument name="pluginConfig" type="any" default="" >
+		<cfargument name="bundle" type="any" default="" >
 
 		<cfset var local = StructNew()/>
 
 		<cfset $ = application.serviceFactory.getBean("muraScope")/>
 		<cfset local.dsn = $.globalConfig().getDatasource() />
 		
-		<cfset local.dbBundle = $.getPlugin("MobileMura").GETFULLPATH() & "/plugin/dbBundle" />
-		<cfif NOT directoryExists(local.dbBundle)>
-			<cfset directoryCreate(local.dbBundle) />
-		</cfif>
-		
 		<!--- BUNDLE TABLES --->
-		<cfset this.bundleMMUASettings(local.dsn) />
-		<cfset this.bundleMMContent(local.dsn) />
-		<cfset this.bundleMMValidation(local.dsn) />
+		<cfset arguments.bundle.setValue('mm_MMUASettings', this.bundleMMUASettings(local.dsn)) />
+		<cfset arguments.bundle.setValue('mm_MMContent', this.bundleMMContent(local.dsn)) />
+		<cfset arguments.bundle.setValue('mm_MMDetection', this.bundleMMDetection(local.dsn)) />
 		
 	</cffunction>
 	
 	<cffunction name="fromBundle" returntype="void" access="public" output="false">
+		<cfargument name="pluginConfig" type="any" default="" >
+		<cfargument name="bundle" type="any" default="" >
 
 		<cfset var local = StructNew()/>
 
 		<cfset $ = application.serviceFactory.getBean("muraScope")/>
 		<cfset local.dsn = $.globalConfig().getDatasource() />
-		
-		<cfset local.dbBundle = $.getPlugin("MobileMura").GETFULLPATH() & "/plugin/dbBundle" />
-		<cfif NOT directoryExists(local.dbBundle)>
-			<cfset directoryCreate(local.dbBundle) />
-		</cfif>
 
 		<!--- CREATE TABLES --->
 		<cfset this.createMMUASettingsTable() />
 		<cfset this.createMMContentTable() />
-		<cfset this.createMMValidationTable() />
+		<cfset this.createMMDetectionTable() />
 		
 		<!--- RESTORE DATA --->
-		<cfset this.restoreMMUASettings(local.dsn) />
-		<cfset this.restoreMMContent(local.dsn) />
-		<cfset this.restoreMMValidation(local.dsn) />
+		<cfset this.restoreMMUASettings(local.dsn, arguments.bundle.getValue('mm_MMUASettings')) />
+		<cfset this.restoreMMContent(local.dsn, arguments.bundle.getValue('mm_MMContent')) />
+		<cfset this.restoreMMDetection(local.dsn, arguments.bundle.getValue('mm_MMDetection')) />
 
 	</cffunction>
 
@@ -181,16 +166,16 @@ limitations under the License.
 		<cfset local.table.addPrimaryKey(column='mm_content_id') />
 	</cffunction>
 
-	<cffunction name="createMMValidationTable" access="private" returntype="void" output="false" >
+	<cffunction name="createMMDetectionTable" access="private" returntype="void" output="false" >
 		
 		<cfset var local = StructNew()/>
 		
 		<cfset local.dbUtility = $.getBean("dbUtility") />
 		
-		<cfset local.table = local.dbUtility.setTable('mm_validation') />
+		<cfset local.table = local.dbUtility.setTable('mm_detection') />
 		
 		<cfset local.table.addColumn(column='site_id', datatype='varchar', length='25', nullable='false', default='') />
-		<cfset local.table.addColumn(column='validation', datatype='varchar', length='50', nullable='false', default='') />
+		<cfset local.table.addColumn(column='detection', datatype='varchar', length='50', nullable='false', default='') />
 		<cfset local.table.addColumn(column='theme', datatype='varchar', length='50', nullable='false', default='') />
 		
 		<cfset local.table.addPrimaryKey(column='site_id') />
@@ -206,13 +191,13 @@ limitations under the License.
 
 			<cfquery datasource="#arguments.dsn#" name="local.checkSiteSetup">
 				SELECT	*
-				FROM	mm_validation
+				FROM	mm_detection
 				WHERE	site_id = '#local.installedSites.siteID#'
 			</cfquery>
 			
 			<cfif NOT local.checkSiteSetup.recordCount>
-				<cfquery name="insertMMValidation" datasource="#arguments.dsn#" >
-					INSERT INTO mm_validation (site_id, validation, theme)
+				<cfquery name="insertMMDetection" datasource="#arguments.dsn#" >
+					INSERT INTO mm_detection (site_id, detection, theme)
 					VALUES
 					('#local.installedSites.siteID#','1','')
 				</cfquery>
@@ -221,8 +206,9 @@ limitations under the License.
 		</cfloop>
 	</cffunction>
 
-	<cffunction name="bundleMMUASettings" access="private" returntype="void" output="false" >
+	<cffunction name="bundleMMUASettings" access="private" returntype="any" output="false" >
 		<cfargument name="dsn" required="true" >
+
 		<cfset var local = StructNew()/>
 		
 		<cfquery name="local.getMMUASettings" datasource="#arguments.dsn#" >
@@ -230,12 +216,12 @@ limitations under the License.
 			FROM	mm_ua_settings
 		</cfquery>
 		
-		<cfwddx action="cfml2wddx" input="#local.getMMUASettings#" output="local.temp">
-		<cffile action="write" output="#local.temp#" file="dbBundle/wddx_mm_ua_settings.xml" charset="utf-8">
+		<cfreturn local.getMMUASettings />
 	</cffunction>
 
-	<cffunction name="bundleMMContent" access="private" returntype="void" output="false" >
+	<cffunction name="bundleMMContent" access="private" returntype="any" output="false" >
 		<cfargument name="dsn" required="true" >
+
 		<cfset var local = StructNew()/>
 		
 		<cfquery name="local.getMMContent" datasource="#arguments.dsn#" >
@@ -243,41 +229,39 @@ limitations under the License.
 			FROM	mm_content
 		</cfquery>
 		
-		<cfwddx action="cfml2wddx" input="#local.getMMContent#" output="local.temp">
-		<cffile action="write" output="#local.temp#" file="dbBundle/wddx_mm_content.xml" charset="utf-8">
+		<cfreturn local.getMMContent />
 	</cffunction>
 
-	<cffunction name="bundleMMValidation" access="private" returntype="void" output="false" >
+	<cffunction name="bundleMMDetection" access="private" returntype="any" output="false" >
 		<cfargument name="dsn" required="true" >
+
 		<cfset var local = StructNew()/>
 		
-		<cfquery name="local.getMMValidation" datasource="#arguments.dsn#" >
+		<cfquery name="local.getMMDetection" datasource="#arguments.dsn#" >
 			SELECT	*
-			FROM	mm_validation
+			FROM	mm_detection
 		</cfquery>
 		
-		<cfwddx action="cfml2wddx" input="#local.getMMValidation#" output="local.temp">
-		<cffile action="write" output="#local.temp#" file="dbBundle/wddx_mm_validation.xml" charset="utf-8">
+		<cfreturn local.getMMDetection />
 	</cffunction>
 
 	<cffunction name="restoreMMUASettings" access="private" returntype="void" output="false" >
 		<cfargument name="dsn" required="true" >
+		<cfargument name="settings" required="true" >
+
 		<cfset var local = StructNew()/>
 		
 		<cfquery datasource="#arguments.dsn#" name="truncateMMUASettings">
 			TRUNCATE TABLE mm_ua_settings
 		</cfquery>
 		
-		<cffile action="read" file="dbBundle/wddx_mm_ua_settings.xml" variable="local.importWDDX" charset="utf-8">
-		<cfwddx action="wddx2cfml" input=#local.importWDDX# output="importValue">
-		
-		<cfif importValue.recordcount>
+		<cfif arguments.settings.recordcount>
 			<cfquery name="insertMMUASettings" datasource="#arguments.dsn#" >
 				INSERT INTO mm_ua_settings (mm_ua_settings_id, site_id, name, ua_string, theme)
 				VALUES
-				<cfloop query="importValue" >
-				<cfif importValue.CurrentRow NEQ 1>,</cfif>
-				('#importValue.mm_ua_settings_id#','#importValue.site_id#','#importValue.name#','#importValue.ua_string#','#importValue.theme#')
+				<cfloop query="arguments.settings" >
+				<cfif arguments.settings.CurrentRow NEQ 1>,</cfif>
+				('#arguments.settings.mm_ua_settings_id#','#arguments.settings.site_id#','#arguments.settings.name#','#arguments.settings.ua_string#','#arguments.settings.theme#')
 				</cfloop>
 			</cfquery>
 		</cfif>
@@ -285,45 +269,43 @@ limitations under the License.
 
 	<cffunction name="restoreMMContent" access="private" returntype="void" output="false" >
 		<cfargument name="dsn" required="true" >
+		<cfargument name="content" required="true" >
+
 		<cfset var local = StructNew()/>
 		
 		<cfquery datasource="#arguments.dsn#" name="truncateMMContent">
 			TRUNCATE TABLE mm_content
 		</cfquery>
 		
-		<cffile action="read" file="dbBundle/wddx_mm_content.xml" variable="local.importWDDX" charset="utf-8">
-		<cfwddx action="wddx2cfml" input=#local.importWDDX# output="importValue">
-		
-		<cfif importValue.recordcount>
+		<cfif arguments.content.recordcount>
 			<cfquery name="insertMMContent" datasource="#arguments.dsn#" >
 				INSERT INTO mm_content_id (mm_content_id, site_id, mm_ua_settings_id, content_id, template)
 				VALUES
-				<cfloop query="importValue" >
-				<cfif importValue.CurrentRow NEQ 1>,</cfif>
-				('#importValue.mm_content_id#','#importValue.site_id#','#importValue.mm_ua_settings_id#','#importValue.content_id#','#importValue.template#')
+				<cfloop query="arguments.content" >
+				<cfif arguments.content.CurrentRow NEQ 1>,</cfif>
+				('#arguments.content.mm_content_id#','#arguments.content.site_id#','#arguments.content.mm_ua_settings_id#','#arguments.content.content_id#','#arguments.content.template#')
 				</cfloop>
 			</cfquery>
 		</cfif>
 	</cffunction>
 
-	<cffunction name="restoreMMValidation" access="private" returntype="void" output="false" >
+	<cffunction name="restoreMMDetection" access="private" returntype="void" output="false" >
 		<cfargument name="dsn" required="true" >
+		<cfargument name="detection" required="true" >
+
 		<cfset var local = StructNew()/>
 		
-		<cfquery datasource="#arguments.dsn#" name="truncateMMValidation">
-			TRUNCATE TABLE mm_validation
+		<cfquery datasource="#arguments.dsn#" name="truncateMMDetection">
+			TRUNCATE TABLE mm_detection
 		</cfquery>
 		
-		<cffile action="read" file="dbBundle/wddx_mm_validation.xml" variable="local.importWDDX" charset="utf-8">
-		<cfwddx action="wddx2cfml" input=#local.importWDDX# output="importValue">
-		
-		<cfif importValue.recordcount>
-			<cfquery name="insertMMValidation" datasource="#arguments.dsn#" >
-				INSERT INTO mm_validation (site_id, validation, theme)
+		<cfif arguments.detection.recordcount>
+			<cfquery name="insertMMDetection" datasource="#arguments.dsn#" >
+				INSERT INTO mm_detection (site_id, detection, theme)
 				VALUES
-				<cfloop query="importValue" >
-				<cfif importValue.CurrentRow NEQ 1>,</cfif>
-				('#importValue.site_id#','#importValue.validation#','#importValue.theme#')
+				<cfloop query="arguments.detection" >
+				<cfif arguments.detection.CurrentRow NEQ 1>,</cfif>
+				('#arguments.detection.site_id#','#arguments.detection.detection#','#arguments.detection.theme#')
 				</cfloop>
 			</cfquery>
 		</cfif>
@@ -349,13 +331,13 @@ limitations under the License.
 
 	</cffunction>
 	
-	<cffunction name="deleteMMValidation" access="private" returntype="void" output="false" >
+	<cffunction name="deleteMMDetection" access="private" returntype="void" output="false" >
 
 		<cfset var local = StructNew()/>
 		
 		<cfset local.dbUtility = $.getBean("dbUtility") />
 		
-		<cfset local.dbUtility.dropTable('mm_validation') />
+		<cfset local.dbUtility.dropTable('mm_detection') />
 
 	</cffunction>
 	
