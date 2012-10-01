@@ -48,10 +48,12 @@ limitations under the License.
 			<table class="table table-bordered table-condensed table-bordered">
 				<tr>
 					<th>Device</th>
+					<th>User Agent String</th>
 					<th>Theme</th>
 				</tr>
 				<tr>
-					<td>iPod</td>
+					<td class="input-large">iPod</td>
+					<td><span class="input-large uneditable-input">ipod</span></td>
 					<td>
 						<select name="iPod_mobileTheme">
 							<option value="-1" <cfif local.MMDetectionSettings.iPod_mobileTheme EQ "-1">selected="selected"</cfif>>No mobile theme selected</option>
@@ -62,7 +64,8 @@ limitations under the License.
 					</td>
 				</tr>
 				<tr>
-					<td>iPhone</td>
+					<td class="input-large">iPhone</td>
+					<td><span class="input-large uneditable-input">iphone</span></td>
 					<td>
 						<select name="iPhone_mobileTheme">
 							<option value="-1" <cfif local.MMDetectionSettings.iPhone_mobileTheme EQ "-1">selected="selected"</cfif>>No mobile theme selected</option>
@@ -73,7 +76,8 @@ limitations under the License.
 					</td>
 				</tr>
 				<tr>
-					<td>iPad</td>
+					<td class="input-large">iPad</td>
+					<td><span class="input-large uneditable-input">ipad</span></td>
 					<td>
 						<select name="iPad_mobileTheme">
 							<option value="-1" <cfif local.MMDetectionSettings.iPad_mobileTheme EQ "-1">selected="selected"</cfif>>No mobile theme selected</option>
@@ -88,10 +92,12 @@ limitations under the License.
 			<table class="table table-bordered table-condensed table-bordered">
 				<tr>
 					<th>Device</th>
+					<th>User Agent String</th>
 					<th>Theme</th>
 				</tr>
 				<tr>
-					<td>Phone</td>
+					<td class="input-large">Phone</td>
+					<td><span class="input-large uneditable-input">android,mobile</span></td>
 					<td>
 						<select name="AndroidPhone_mobileTheme">
 							<option value="-1" <cfif local.MMDetectionSettings.AndroidPhone_mobileTheme EQ "-1">selected="selected"</cfif>>No mobile theme selected</option>
@@ -102,7 +108,8 @@ limitations under the License.
 					</td>
 				</tr>
 				<tr>
-					<td>Tablet</td>
+					<td class="input-large">Tablet</td>
+					<td><span class="input-large uneditable-input">android</span></td>
 					<td>
 						<select name="AndroidTablet_mobileTheme">
 							<option value="-1" <cfif local.MMDetectionSettings.AndroidTablet_mobileTheme EQ "-1">selected="selected"</cfif>>No mobile theme selected</option>
@@ -117,10 +124,12 @@ limitations under the License.
 			<table class="table table-bordered table-condensed table-bordered">
 				<tr>
 					<th>Device</th>
+					<th>User Agent String</th>
 					<th>Theme</th>
 				</tr>
 				<tr>
-					<td>Phone</td>
+					<td class="input-large">Phone</td>
+					<td><span class="input-large uneditable-input">blackberry</span></td>
 					<td>
 						<select name="BlackBerryPhone_mobileTheme">
 							<option value="-1" <cfif local.MMDetectionSettings.BlackBerryPhone_mobileTheme EQ "-1">selected="selected"</cfif>>No mobile theme selected</option>
@@ -131,7 +140,8 @@ limitations under the License.
 					</td>
 				</tr>
 				<tr>
-					<td>Tablet</td>
+					<td class="input-large">Tablet</td>
+					<td><span class="input-large uneditable-input">rim tablet</span></td>
 					<td>
 						<select name="BlackBerryTablet_mobileTheme">
 							<option value="-1" <cfif local.MMDetectionSettings.BlackBerryTablet_mobileTheme EQ "-1">selected="selected"</cfif>>No mobile theme selected</option>
@@ -146,10 +156,12 @@ limitations under the License.
 			<table class="table table-bordered table-condensed table-bordered">
 				<tr>
 					<th>Device</th>
+					<th>User Agent String</th>
 					<th>Theme</th>
 				</tr>
 				<tr>
-					<td>Phone</td>
+					<td class="input-large">Phone</td>
+					<td><span class="input-large uneditable-input">windows phone os</span></td>
 					<td>
 						<select name="WindowsMobilePhone_mobileTheme">
 							<option value="-1" <cfif local.MMDetectionSettings.WindowsMobilePhone_mobileTheme EQ "-1">selected="selected"</cfif>>No mobile theme selected</option>
