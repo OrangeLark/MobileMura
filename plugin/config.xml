@@ -34,6 +34,8 @@ limitations under the License.
 		<eventHandler event="standardMobileHandler" component="event.pluginEventHandler" persist="true" />
 		<eventHandler event="onContentEdit" component="event.pluginEventHandler" persist="true" />
 		<eventHandler event="onAfterContentSave" component="event.pluginEventHandler" persist="true" />
+		<eventHandler event="onSiteEdit" component="event.pluginEventHandler" persist="true" />
+		<eventHandler event="onAfterSiteSave" component="event.pluginEventHandler" persist="true" />
 	</EventHandlers>
 	<DisplayObjects location="global">
 		<DisplayObject name="MobileSwitcher" component="public.display.displayManager" displaymethod="mobileSwitcher" persist="false" />
