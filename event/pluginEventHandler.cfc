@@ -89,16 +89,30 @@ limitations under the License.
 			<cfset local.mobileTheme = local.getDetection.theme />
 			
 			<cfif Len(local.mobileTheme)>
-				<cfset local.mobileTemplatesUrl = Replace($.getSite().getConfigBean().getTemplateIncludeDir(), $.getSite().getConfigBean().getTheme(), local.mobileTheme) />
+				<cfset local.mobileTemplatesUrl = Replace($.getSite().getTemplateIncludeDir(), $.getSite().getTheme(), local.mobileTheme) />
 				<cfdirectory name="local.mobileTemplates" action="LIST" directory="#local.mobileTemplatesUrl#" filter="*.cfm" />
 			<cfelse>
 				<cfset local.mobileTemplates = queryNew("", "") />
 			</cfif>
+			
+			<cfquery name="local.getTemplateSet" datasource="#local.dsn#" >
+				SELECT	template
+				FROM	mm_content
+				WHERE	site_id = '#$.content().getSiteId()#'
+				AND		content_id = '#$.content().getContentId()#'
+			</cfquery>
 		<cfelse>
 			<cfquery name="local.UASettings" datasource="#local.dsn#" >
-				SELECT	name, theme
+				SELECT	name, theme, mm_ua_settings_id
 				FROM	mm_ua_settings
 				WHERE	site_id = '#$.getSite().getSiteID()#'
+			</cfquery>
+			
+			<cfquery name="local.getTemplateSet" datasource="#local.dsn#" >
+				SELECT	mm_ua_settings_id, template
+				FROM	mm_content
+				WHERE	site_id = '#$.content().getSiteId()#'
+				AND		content_id = '#$.content().getContentId()#'
 			</cfquery>
 		</cfif>
 		
@@ -113,24 +127,79 @@ limitations under the License.
 		<cfset var local = StructNew() />
 		<cfset local.dsn = $.globalConfig().getDatasource() />
 		
-		<cfquery name="local.checkContent" datasource="#local.dsn#" >
-			SELECT	*
-			FROM	mm_content
-			WHERE	content_id = '#$.content().getContentId()#'
+		<cfquery name="local.getDetection" datasource="#local.dsn#" >
+			SELECT	detection, theme
+			FROM	mm_detection
+			WHERE	site_id = "#$.getSite().getSiteId()#"
 		</cfquery>
 		
-		<cfquery name="insertUpdateContent" datasource="#local.dsn#">
-			<cfif local.checkContent.recordCount>
-				UPDATE	mm_content
-				SET		template = '#$.event("mobiletemplate")#'
-				WHERE	site_id = '#$.content().getSiteId()#'
-				AND		content_id = '#$.content().getContentId()#'
-			<cfelse>
-				INSERT 	INTO mm_content
-				(mm_content_id, site_id, content_id, template)
-				VALUES
-				('#createUUID()#', '#$.content().getSiteId()#', '#$.content().getContentId()#', #$.event("mobiletemplate")#)
-			</cfif>
+		<cfif $.event("mm_detectionType") EQ "1">
+			<cfquery name="local.checkContent" datasource="#local.dsn#" >
+				SELECT	*
+				FROM	mm_content
+				WHERE	content_id = '#$.content().getContentId()#'
+			</cfquery>
+			
+			<cfquery name="insertUpdateContent" datasource="#local.dsn#">
+				<cfif local.checkContent.recordCount>
+					UPDATE	mm_content
+					SET		template = '#$.event("mobiletemplate")#'
+					WHERE	site_id = '#$.content().getSiteId()#'
+					AND		content_id = '#$.content().getContentId()#'
+				<cfelse>
+					INSERT 	INTO mm_content
+					(mm_content_id, site_id, content_id, template)
+					VALUES
+					('#createUUID()#', '#$.content().getSiteId()#', '#$.content().getContentId()#', '#$.event("mobiletemplate")#')
+				</cfif>
+			</cfquery>
+		<cfelse>
+			<cfquery name="local.getMMDetectionSettings" datasource="#local.dsn#">
+				SELECT	*
+				FROM	mm_ua_settings
+				WHERE	site_id = '#$.getSite().getSiteId()#'
+			</cfquery>
+			
+			<cfloop query="local.getMMDetectionSettings" >
+				<cfset local.name = Replace(local.getMMDetectionSettings.name, ' ', '') />
+				<cfquery name="local.checkContentSettings" datasource="#local.dsn#">
+					SELECT	*
+					FROM	mm_content
+					WHERE	site_id = '#$.getSite().getSiteId()#'
+					AND		content_id = '#$.content().getContentId()#'
+					AND		mm_ua_settings_id = '#local.getMMDetectionSettings.mm_ua_settings_id#'
+				</cfquery>
+				
+				<cfif local.checkContentSettings.RecordCount>
+					<cfquery name="local.updateSettings" datasource="#local.dsn#">
+						UPDATE	mm_content
+						SET		template = '#$.event("MMmobileTemplate-#local.name#")#'
+						WHERE	mm_content_id = '#local.checkContentSettings.mm_content_id#'
+					</cfquery>
+				<cfelse>
+					<cfquery name="local.updateSettings" datasource="#local.dsn#">
+						INSERT	INTO mm_content
+						(mm_content_id, site_id, mm_ua_settings_id, content_id, template)
+						VALUES
+						('#createUUID()#', '#$.getSite().getSiteID()#', '#local.getMMDetectionSettings.mm_ua_settings_id#', '#$.content().getContentID()#', '#$.event("MMmobileTemplate-#local.name#")#')
+					</cfquery>
+				</cfif>
+			</cfloop>
+		</cfif>
+		
+		<cfreturn />
+	</cffunction>
+
+	<cffunction name="onBeforeContentDelete" returntype="any" output="true" >
+		<cfargument name="$" />
+		
+		<cfset var local = StructNew() />
+		<cfset local.dsn = $.globalConfig().getDatasource() />
+		
+		<cfquery name="local.deleteContentTraces" datasource="#local.dsn#" >
+			DELETE	
+			FROM	mm_content
+			WHERE	content_id = "#$.content().getContenId()#"
 		</cfquery>
 		
 		<cfreturn />
@@ -218,10 +287,17 @@ limitations under the License.
 					</cfif>
 				</cfquery>
 
-				<cfquery name="local.checkContent" datasource="#local.dsn#" >
+				<cfquery name="local.deleteOldSettings" datasource="#local.dsn#" >
 					DELETE	
 					FROM	mm_ua_settings
 					WHERE	site_id = '#$.getSite().getSiteId()#'
+				</cfquery>
+
+				<cfquery name="local.deleteOldContentSettings" datasource="#local.dsn#" >
+					DELETE	
+					FROM	mm_content
+					WHERE	site_id = '#$.getSite().getSiteId()#'
+					AND		NOT mm_ua_settings_id IS NULL
 				</cfquery>
 			</cfcase>
 			<cfcase value="2" >
@@ -255,7 +331,7 @@ limitations under the License.
 				<cfquery name="local.checkSetting_iPod_mobileTheme" dbtype="query" >
 					SELECT	*
 					FROM	local.checkSettings
-					WHERE	name = 'iPod_mobileTheme'
+					WHERE	name = 'iPod'
 				</cfquery>
 				
 				<cfquery name="insertUpdateSettings" datasource="#local.dsn#">
@@ -263,12 +339,12 @@ limitations under the License.
 						UPDATE	mm_ua_settings
 						SET		theme = '#$.event("iPod_mobileTheme")#'
 						WHERE	site_id = '#$.getSite().getSiteId()#'
-						AND		name = 'iPod_mobileTheme'
+						AND		name = 'iPod'
 					<cfelse>
 						INSERT 	INTO mm_ua_settings
 						(mm_ua_settings_id, site_id, name, ua_string, theme)
 						VALUES
-						('#createUUID()#', '#$.getSite().getSiteId()#', 'iPod_mobileTheme', 'ipod', '#$.event("iPod_mobileTheme")#')
+						('#createUUID()#', '#$.getSite().getSiteId()#', 'iPod', 'ipod', '#$.event("iPod_mobileTheme")#')
 					</cfif>
 				</cfquery>
 				
@@ -276,7 +352,7 @@ limitations under the License.
 				<cfquery name="local.checkSetting_iPhone_mobileTheme" dbtype="query" >
 					SELECT	*
 					FROM	local.checkSettings
-					WHERE	name = 'iPhone_mobileTheme'
+					WHERE	name = 'iPhone'
 				</cfquery>
 				
 				<cfquery name="insertUpdateSettings" datasource="#local.dsn#">
@@ -284,12 +360,12 @@ limitations under the License.
 						UPDATE	mm_ua_settings
 						SET		theme = '#$.event("iPhone_mobileTheme")#'
 						WHERE	site_id = '#$.getSite().getSiteId()#'
-						AND		name = 'iPhone_mobileTheme'
+						AND		name = 'iPhone'
 					<cfelse>
 						INSERT 	INTO mm_ua_settings
 						(mm_ua_settings_id, site_id, name, ua_string, theme)
 						VALUES
-						('#createUUID()#', '#$.getSite().getSiteId()#', 'iPhone_mobileTheme', 'iphone', '#$.event("iPhone_mobileTheme")#')
+						('#createUUID()#', '#$.getSite().getSiteId()#', 'iPhone', 'iphone', '#$.event("iPhone_mobileTheme")#')
 					</cfif>
 				</cfquery>
 				
@@ -297,7 +373,7 @@ limitations under the License.
 				<cfquery name="local.checkSetting_iPad_mobileTheme" dbtype="query" >
 					SELECT	*
 					FROM	local.checkSettings
-					WHERE	name = 'iPad_mobileTheme'
+					WHERE	name = 'iPad'
 				</cfquery>
 				
 				<cfquery name="insertUpdateSettings" datasource="#local.dsn#">
@@ -305,12 +381,12 @@ limitations under the License.
 						UPDATE	mm_ua_settings
 						SET		theme = '#$.event("iPad_mobileTheme")#'
 						WHERE	site_id = '#$.getSite().getSiteId()#'
-						AND		name = 'iPad_mobileTheme'
+						AND		name = 'iPad'
 					<cfelse>
 						INSERT 	INTO mm_ua_settings
 						(mm_ua_settings_id, site_id, name, ua_string, theme)
 						VALUES
-						('#createUUID()#', '#$.getSite().getSiteId()#', 'iPad_mobileTheme', 'ipad', '#$.event("iPad_mobileTheme")#')
+						('#createUUID()#', '#$.getSite().getSiteId()#', 'iPad', 'ipad', '#$.event("iPad_mobileTheme")#')
 					</cfif>
 				</cfquery>
 				
@@ -318,7 +394,7 @@ limitations under the License.
 				<cfquery name="local.checkSetting_AndroidPhone_mobileTheme" dbtype="query" >
 					SELECT	*
 					FROM	local.checkSettings
-					WHERE	name = 'AndroidPhone_mobileTheme'
+					WHERE	name = 'Android Phone'
 				</cfquery>
 				
 				<cfquery name="insertUpdateSettings" datasource="#local.dsn#">
@@ -326,12 +402,12 @@ limitations under the License.
 						UPDATE	mm_ua_settings
 						SET		theme = '#$.event("AndroidPhone_mobileTheme")#'
 						WHERE	site_id = '#$.getSite().getSiteId()#'
-						AND		name = 'AndroidPhone_mobileTheme'
+						AND		name = 'Android Phone'
 					<cfelse>
 						INSERT 	INTO mm_ua_settings
 						(mm_ua_settings_id, site_id, name, ua_string, theme)
 						VALUES
-						('#createUUID()#', '#$.getSite().getSiteId()#', 'AndroidPhone_mobileTheme', 'android,mobile', '#$.event("AndroidPhone_mobileTheme")#')
+						('#createUUID()#', '#$.getSite().getSiteId()#', 'Android Phone', 'android,mobile', '#$.event("AndroidPhone_mobileTheme")#')
 					</cfif>
 				</cfquery>
 				
@@ -339,7 +415,7 @@ limitations under the License.
 				<cfquery name="local.checkSetting_AndroidTablet_mobileTheme" dbtype="query" >
 					SELECT	*
 					FROM	local.checkSettings
-					WHERE	name = 'AndroidTablet_mobileTheme'
+					WHERE	name = 'Android Tablet'
 				</cfquery>
 				
 				<cfquery name="insertUpdateSettings" datasource="#local.dsn#">
@@ -347,12 +423,12 @@ limitations under the License.
 						UPDATE	mm_ua_settings
 						SET		theme = '#$.event("AndroidTablet_mobileTheme")#'
 						WHERE	site_id = '#$.getSite().getSiteId()#'
-						AND		name = 'AndroidTablet_mobileTheme'
+						AND		name = 'Android Tablet'
 					<cfelse>
 						INSERT 	INTO mm_ua_settings
 						(mm_ua_settings_id, site_id, name, ua_string, theme)
 						VALUES
-						('#createUUID()#', '#$.getSite().getSiteId()#', 'AndroidTablet_mobileTheme', 'android', '#$.event("AndroidTablet_mobileTheme")#')
+						('#createUUID()#', '#$.getSite().getSiteId()#', 'Android Tablet', 'android', '#$.event("AndroidTablet_mobileTheme")#')
 					</cfif>
 				</cfquery>
 				
@@ -360,7 +436,7 @@ limitations under the License.
 				<cfquery name="local.checkSetting_BlackBerryPhone_mobileTheme" dbtype="query" >
 					SELECT	*
 					FROM	local.checkSettings
-					WHERE	name = 'BlackBerryPhone_mobileTheme'
+					WHERE	name = 'BlackBerry Phone'
 				</cfquery>
 				
 				<cfquery name="insertUpdateSettings" datasource="#local.dsn#">
@@ -368,12 +444,12 @@ limitations under the License.
 						UPDATE	mm_ua_settings
 						SET		theme = '#$.event("BlackBerryPhone_mobileTheme")#'
 						WHERE	site_id = '#$.getSite().getSiteId()#'
-						AND		name = 'BlackBerryPhone_mobileTheme'
+						AND		name = 'BlackBerry Phone'
 					<cfelse>
 						INSERT 	INTO mm_ua_settings
 						(mm_ua_settings_id, site_id, name, ua_string, theme)
 						VALUES
-						('#createUUID()#', '#$.getSite().getSiteId()#', 'BlackBerryPhone_mobileTheme', 'blackberry', '#$.event("BlackBerryPhone_mobileTheme")#')
+						('#createUUID()#', '#$.getSite().getSiteId()#', 'BlackBerry Phone', 'blackberry', '#$.event("BlackBerryPhone_mobileTheme")#')
 					</cfif>
 				</cfquery>
 				
@@ -381,7 +457,7 @@ limitations under the License.
 				<cfquery name="local.checkSetting_BlackBerryTablet_mobileTheme" dbtype="query" >
 					SELECT	*
 					FROM	local.checkSettings
-					WHERE	name = 'BlackBerryTablet_mobileTheme'
+					WHERE	name = 'BlackBerry Tablet'
 				</cfquery>
 				
 				<cfquery name="insertUpdateSettings" datasource="#local.dsn#">
@@ -389,12 +465,12 @@ limitations under the License.
 						UPDATE	mm_ua_settings
 						SET		theme = '#$.event("BlackBerryTablet_mobileTheme")#'
 						WHERE	site_id = '#$.getSite().getSiteId()#'
-						AND		name = 'BlackBerryTablet_mobileTheme'
+						AND		name = 'BlackBerry Tablet'
 					<cfelse>
 						INSERT 	INTO mm_ua_settings
 						(mm_ua_settings_id, site_id, name, ua_string, theme)
 						VALUES
-						('#createUUID()#', '#$.getSite().getSiteId()#', 'BlackBerryTablet_mobileTheme', 'rim tablet', '#$.event("BlackBerryTablet_mobileTheme")#')
+						('#createUUID()#', '#$.getSite().getSiteId()#', 'BlackBerry Tablet', 'rim tablet', '#$.event("BlackBerryTablet_mobileTheme")#')
 					</cfif>
 				</cfquery>
 				
@@ -402,7 +478,7 @@ limitations under the License.
 				<cfquery name="local.checkSetting_WindowsMobilePhone_mobileTheme" dbtype="query" >
 					SELECT	*
 					FROM	local.checkSettings
-					WHERE	name = 'WindowsMobilePhone_mobileTheme'
+					WHERE	name = 'Windows Mobile Phone'
 				</cfquery>
 				
 				<cfquery name="insertUpdateSettings" datasource="#local.dsn#">
@@ -410,21 +486,32 @@ limitations under the License.
 						UPDATE	mm_ua_settings
 						SET		theme = '#$.event("WindowsMobilePhone_mobileTheme")#'
 						WHERE	site_id = '#$.getSite().getSiteId()#'
-						AND		name = 'WindowsMobilePhone_mobileTheme'
+						AND		name = 'Windows Mobile Phone'
 					<cfelse>
 						INSERT 	INTO mm_ua_settings
 						(mm_ua_settings_id, site_id, name, ua_string, theme)
 						VALUES
-						('#createUUID()#', '#$.getSite().getSiteId()#', 'WindowsMobilePhone_mobileTheme', 'windows phone os', '#$.event("WindowsMobilePhone_mobileTheme")#')
+						('#createUUID()#', '#$.getSite().getSiteId()#', 'Windows Mobile Phone', 'windows phone os', '#$.event("WindowsMobilePhone_mobileTheme")#')
 					</cfif>
 				</cfquery>
 
-				<cfset local.names = "iPod_mobileTheme,iPhone_mobileTheme,iPad_mobileTheme,AndroidPhone_mobileTheme,AndroidTablet_mobileTheme,BlackBerryPhone_mobileTheme,BlackBerryTablet_mobileTheme,WindowsMobilePhone_mobileTheme" />
-				<cfquery name="local.checkContent" datasource="#local.dsn#" >
+				<cfset local.names = "iPod,iPhone,iPad,Android Phone,Android Tablet,BlackBerry Phone,BlackBerry Tablet,Windows Mobile Phone" />
+				<cfquery name="local.deleteOldSettings" datasource="#local.dsn#" >
 					DELETE	
 					FROM	mm_ua_settings
 					WHERE	site_id = '#$.getSite().getSiteId()#'
 					AND		NOT name IN (<cfqueryparam value="#local.names#" cfsqltype="cf_sql_varchar" list="true" >)
+				</cfquery>
+
+				<cfquery name="local.deleteOldContentSettings" datasource="#local.dsn#" >
+					DELETE	
+					FROM	mm_content
+					WHERE	site_id = '#$.getSite().getSiteId()#'
+					AND		NOT mm_ua_settings_id IN (
+							SELECT	mm_ua_settings_id
+							FROM	mm_ua_settings
+							WHERE	site_id = '#$.getSite().getSiteId()#'
+					)
 				</cfquery>
 			</cfcase>
 			<cfcase value="3" >
@@ -475,14 +562,46 @@ limitations under the License.
 					</cfif>
 				</cfloop>
 
-				<cfquery name="local.checkContent" datasource="#local.dsn#" >
+				<cfquery name="local.deleteOldSettings" datasource="#local.dsn#" >
 					DELETE	
 					FROM	mm_ua_settings
 					WHERE	site_id = '#$.getSite().getSiteId()#'
 					AND		NOT name IN (<cfqueryparam value="#local.names#" cfsqltype="cf_sql_varchar" list="true" >)
 				</cfquery>
+
+				<cfquery name="local.deleteOldContentSettings" datasource="#local.dsn#" >
+					DELETE	
+					FROM	mm_content
+					WHERE	site_id = '#$.getSite().getSiteId()#'
+					AND		NOT mm_ua_settings_id IN (
+							SELECT	mm_ua_settings_id
+							FROM	mm_ua_settings
+							WHERE	site_id = '#$.getSite().getSiteId()#'
+					)
+				</cfquery>
 			</cfcase>
 		</cfswitch>
+		
+		<cfreturn />
+	</cffunction>
+
+	<cffunction name="onBeforeSiteDelete" returntype="any" output="true" >
+		<cfargument name="$" />
+		
+		<cfset var local = StructNew() />
+		<cfset local.dsn = $.globalConfig().getDatasource() />
+		
+		<cfquery name="local.deleteSiteTraces" datasource="#local.dsn#" >
+			DELETE	
+			FROM	mm_ua_settings
+			WHERE	site_id = "#$.getSite().getSiteId()#"
+		</cfquery>
+		
+		<cfquery name="local.deleteSiteTraces" datasource="#local.dsn#" >
+			DELETE	
+			FROM	mm_detection
+			WHERE	site_id = "#$.getSite().getSiteId()#"
+		</cfquery>
 		
 		<cfreturn />
 	</cffunction>

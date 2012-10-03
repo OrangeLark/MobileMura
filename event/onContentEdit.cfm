@@ -31,7 +31,7 @@ limitations under the License.
 				<option selected="selected" value="-1">Inherit From Parent</option>
 				<option value="-2">Desktop Template</option>
 				<cfloop query="local.mobileTemplates">
-				<option value="#local.mobileTemplates.name#" <!---<cfif local.mobileTemplates.name EQ $.content("mobiletemplate") >selected="true"</cfif>--->>
+				<option value="#local.mobileTemplates.name#" <cfif local.mobileTemplates.name EQ local.getTemplateSet.template >selected="true"</cfif>>
 					#local.mobileTemplates.name#
 				</option>
 				</cfloop>
@@ -45,26 +45,37 @@ limitations under the License.
 			<th>Template</th>
 		</tr>
 		<cfloop query="local.UASettings">
-
-			<cfif Len(local.UASettings.theme)>
-				<cfset local.mobileTemplatesUrl = Replace($.getSite().getConfigBean().getTemplateIncludeDir(), $.getSite().getConfigBean().getTheme(), local.UASettings.theme) />
+			<cfset i = Replace(local.UASettings.name, ' ', '') />
+			
+			<cfif local.UASettings.theme EQ "-1">
+				<cfset local.mobileTemplatesUrl = $.getSite().getTemplateIncludeDir() />
+				<cfdirectory name="local.mobileTemplates" action="LIST" directory="#local.mobileTemplatesUrl#" filter="*.cfm" />
+			<cfelseif Len(local.UASettings.theme)>
+				<cfset local.mobileTemplatesUrl = Replace($.getSite().getTemplateIncludeDir(), $.getSite().getTheme(), local.UASettings.theme) />
 				<cfdirectory name="local.mobileTemplates" action="LIST" directory="#local.mobileTemplatesUrl#" filter="*.cfm" />
 			<cfelse>
 				<cfset local.mobileTemplates = queryNew("", "") />
 			</cfif>
+			
+			<cfquery name="local.getTemplate" dbtype="query" >
+				SELECT	template
+				FROM	local.getTemplateSet
+				WHERE	mm_ua_settings_id = '#local.UASettings.mm_ua_settings_id#'
+			</cfquery>
 	
 			<tr>
 				<td>#local.UASettings.name#</td>
 				<td>
-					<select id="mobiletemplate" name="mobiletemplate" class="dropdown" >
+					<select id="MMmobileTemplate-#i#" name="MMmobileTemplate-#i#" class="dropdown" >
 						<option selected="selected" value="-1">Inherit From Parent</option>
 						<option value="-2">Desktop Template</option>
 						<cfloop query="local.mobileTemplates">
-						<option value="#local.mobileTemplates.name#" <!---<cfif local.mobileTemplates.name EQ $.content("mobiletemplate") >selected="true"</cfif>--->>
+						<option value="#local.mobileTemplates.name#" <cfif local.mobileTemplates.name EQ local.getTemplate.template >selected="true"</cfif>>
 							#local.mobileTemplates.name#
 						</option>
 						</cfloop>
 					</select>
+					<input id="MMid-#i#" name="MMid-#i#" value="#local.UASettings.mm_ua_settings_id#" type="hidden" />
 				</td>
 			</tr>
 		</cfloop>
