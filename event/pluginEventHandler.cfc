@@ -44,10 +44,7 @@ limitations under the License.
 	<cffunction name="onSiteRequestStart" output="false">
         <cfargument name="$" required="true" hint="mura scope" />
         <cfset $[variables.framework.applicationKey] = this />
-		
-		<!--- add logic --->
-		
-    </cffunction>
+	</cffunction>
 
 	<cffunction name="onRenderStart" output="false" returntype="any">
 		<cfargument name="$" />
@@ -57,19 +54,94 @@ limitations under the License.
 		</cfscript>
 	</cffunction>
 
-	<cffunction name="standardMobileHandler" output="false" returntype="any">
+	<cffunction name="onGlobalRequestStart" output="false" returntype="any" >
 		<cfargument name="$" />
 
-<!---		
-		<cfset MobileMura = createObject("component","#pluginConfig.getPackage()#.MobileMura") />
+		<cfif StructKeyExists(cookie, "MM_mobileFormat")>
+			<cfset request.MobileMuraMobileRequest = cookie.MM_mobileFormat />
+		</cfif>
+
+		<cfif StructKeyExists(url, "MM_mobileFormat")>
+			<cfcookie name="MM_mobileFormat" value="#url.MM_mobileFormat#" />
+			<cfset request.MobileMuraMobileRequest = cookie.MM_mobileFormat />
+		</cfif>
 		
-		<cfset MobileMura.updateTemplate($.content()) />
-		<cfset MobileMura.updateTheme($) />
+	</cffunction>
+	
+	<cffunction name="onGlobalMobileDetection" output="false">
+        <cfargument name="$" required="true" hint="mura scope" />
+
+		<cfset var local = StructNew() />
+		<cfset local.dsn = $.globalConfig().getDatasource() />
+		
+		<cfquery name="local.getDetection" datasource="#local.dsn#" >
+			SELECT	detection
+			FROM	mm_detection
+			WHERE	site_id = '#$.getSite().getSiteId()#'
+		</cfquery>
+		
+		<cfset request.MobileMuraMobileRequest = "" />
+		
+		<cfif local.getDetection.detection NEQ "1">
+
+			<cfif not isdefined("cookie.MM_mobileFormat")>
+				
+				<cfquery name="local.getUASettings" datasource="#local.dsn#" >
+					SELECT	ua_string, name
+					FROM	mm_ua_settings
+					WHERE	site_id = '#$.getSite().getSiteId()#'
+				</cfquery>
+				
+				<cfloop query="local.getUASettings" >
+					<cfif reFindNoCase("(" & ListChangeDelims(local.getUASettings.ua_string, ")(") & ")",CGI.HTTP_USER_AGENT)>
+						<cfcookie name="mobileFormat" value="true" />
+						<cfcookie name="MM_mobileFormat" value="#local.getUASettings.name#" />
+					<cfelse>
+						<cfcookie name="mobileFormat" value="false" />
+						<cfcookie name="MM_mobileFormat" value="false" />
+					</cfif>
+				</cfloop>
+				
+			</cfif>
+		
+			<cfset request.MobileMuraMobileRequest = cookie.MM_mobileFormat />
+		</cfif>
+		
+    </cffunction>
+
+	<cffunction name="standardMobileHandler" output="false" returntype="any">
+		<cfargument name="$" />
+		
+		<cfset var local = StructNew() />
+		<cfset local.dsn = $.globalConfig().getDatasource() />
+
+		<cfset local.MobileMura = createObject("component","#pluginConfig.getPackage()#.MobileMura") />
+		
+		<cfquery name="local.getDetection" datasource="#local.dsn#" >
+			SELECT	detection
+			FROM	mm_detection
+			WHERE	site_id = '#$.getSite().getSiteId()#'
+		</cfquery>
+		
+		<cfif local.getDetection.detection EQ "1">
+			<cfset local.MobileMura.updateTemplate($) />
+			<cfset local.MobileMura.updateTheme($) />
+		<cfelse>
+			<cfquery name="local.getUASettings" datasource="#local.dsn#" >
+				SELECT	mm_ua_settings_id, name
+				FROM	mm_ua_settings
+				WHERE	site_id = '#$.getSite().getSiteId()#'
+				AND		name = '#request.MobileMuraMobileRequest#'
+			</cfquery>
+
+			<cfset local.MobileMura.MMupdateTemplate($, local.getUASettings.mm_ua_settings_id) />
+			<cfset local.MobileMura.MMupdateTheme($) />
+		</cfif>
 
 		<cfset renderer.showAdminToolbar=false>
 		<cfset renderer.showMemberToolbar=false>
 		<cfset renderer.showEditableObjects=false>
---->
+
 		<cfreturn />
 	</cffunction>
 
@@ -133,11 +205,12 @@ limitations under the License.
 			WHERE	site_id = "#$.getSite().getSiteId()#"
 		</cfquery>
 		
-		<cfif $.event("mm_detectionType") EQ "1">
+		<cfif local.getDetection.detection EQ "1">
 			<cfquery name="local.checkContent" datasource="#local.dsn#" >
 				SELECT	*
 				FROM	mm_content
-				WHERE	content_id = '#$.content().getContentId()#'
+				WHERE	site_id = '#$.content().getSiteId()#'
+				AND		content_id = '#$.content().getContentId()#'
 			</cfquery>
 			
 			<cfquery name="insertUpdateContent" datasource="#local.dsn#">
@@ -190,7 +263,7 @@ limitations under the License.
 		<cfreturn />
 	</cffunction>
 
-	<cffunction name="onBeforeContentDelete" returntype="any" output="true" >
+	<cffunction name="onAfterContentDelete" returntype="any" output="true" >
 		<cfargument name="$" />
 		
 		<cfset var local = StructNew() />
@@ -585,7 +658,7 @@ limitations under the License.
 		<cfreturn />
 	</cffunction>
 
-	<cffunction name="onBeforeSiteDelete" returntype="any" output="true" >
+	<cffunction name="onAfterSiteDelete" returntype="any" output="true" >
 		<cfargument name="$" />
 		
 		<cfset var local = StructNew() />

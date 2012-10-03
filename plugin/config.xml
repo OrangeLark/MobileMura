@@ -31,11 +31,15 @@ limitations under the License.
 	<EventHandlers>
 		<eventHandler event="onApplicationLoad" component="event.pluginEventHandler" persist="true" />
 		<eventHandler event="onSiteRequestStart" component="event.pluginEventHandler" persist="true" />
+		<eventHandler event="onGlobalRequestStart" component="event.pluginEventHandler" persist="true" />
 		<eventHandler event="standardMobileHandler" component="event.pluginEventHandler" persist="true" />
+		<eventHandler event="onGlobalMobileDetection" component="event.pluginEventHandler" persist="true" />
 		<eventHandler event="onContentEdit" component="event.pluginEventHandler" persist="true" />
 		<eventHandler event="onAfterContentSave" component="event.pluginEventHandler" persist="true" />
+		<eventHandler event="onAfterContentDelete" component="event.pluginEventHandler" persist="true" />
 		<eventHandler event="onSiteEdit" component="event.pluginEventHandler" persist="true" />
 		<eventHandler event="onAfterSiteSave" component="event.pluginEventHandler" persist="true" />
+		<eventHandler event="onAfterSiteDelete" component="event.pluginEventHandler" persist="true" />
 	</EventHandlers>
 	<DisplayObjects location="global">
 		<DisplayObject name="MobileSwitcher" component="public.display.displayManager" displaymethod="mobileSwitcher" persist="false" />

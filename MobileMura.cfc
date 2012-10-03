@@ -21,99 +21,236 @@ limitations under the License.
 <cfcomponent>
 	
 	<cffunction name="updateTemplate" output="false" returntype="any" access="public" >
-		<cfargument name="contentBean" />
+		<cfargument name="$" type="Any" required="true">
 		
-		<cfset var $ = application.serviceFactory.getBean("muraScope").init(session.siteID) />
+		<cfset var local = StructNew() />
+		<cfset local.dsn = $.globalConfig().getDatasource() />
 
-		<cfset var c = arguments.contentBean />
-		<cfset var p = arguments.contentBean />
+		<cfset local.c = $.content() />
+		<cfset local.p = $.content() />
 		
-		<cfset var mobileTemplate = "" />
+		<cfset local.mobileTemplate = "" />
 		
 		<!--- check if a template is set --->
 		<!--- inherit from parent == empty string --->
 		<!--- if the template is an empty string: look for the parents template --->
-		<cfloop condition="NOT Len(c.getTemplate())" >
+		<cfquery name="local.searchTemplate" datasource="#local.dsn#" >
+			SELECT	*
+			FROM	mm_content
+			WHERE	site_id = '#$.getSite().getSiteID()#'
+			AND		content_id = '#local.c.getContentID()#'
+		</cfquery>
+		<cfset local.template = local.searchTemplate.template />
+		<cfloop condition="NOT Len(local.template)" >
 			<!--- get the template --->
-			<cfset c = c.getParent() />
+			<cfset local.c = local.c.getParent() />
+			<cfquery name="local.searchParentTemplate" datasource="#local.dsn#" >
+				SELECT	*
+				FROM	mm_content
+				WHERE	site_id = '#$.getSite().getSiteID()#'
+				AND		content_id = '#local.c.getContentID()#'
+			</cfquery>
+			<cfset local.template = local.searchParentTemplate.template />
 		</cfloop>
 		
 		<!--- the 'mobiletemplate' is set --->
-		<cfif Len(arguments.contentBean.getValue("mobiletemplate"))>
+		<cfif Len(local.searchTemplate.template)>
 			
 			<!--- Inherit From Parent --->
-			<cfif arguments.contentBean.getValue("mobiletemplate") EQ "-1">
-				<cfset i = true />
-				<cfloop condition="i" >
-					<cfif p.hasParent()>
-						<cfset p = p.getParent() />
-
-						<cfif Len(p.getExtendedAttribute("mobiletemplate"))>
-							<cfif p.getExtendedAttribute("mobiletemplate") EQ "-1">
+			<cfif local.searchTemplate.template EQ "-1">
+				<cfset local.i = true />
+				<cfloop condition="local.i" >
+					<cfif local.p.hasParent()>
+						<cfset local.p = local.p.getParent() />
+						
+						<cfquery name="local.searchPTemplate" datasource="#local.dsn#" >
+							SELECT	*
+							FROM	mm_content
+							WHERE	site_id = '#$.getSite().getSiteID()#'
+							AND		content_id = '#local.c.getContentID()#'
+						</cfquery>
+						<cfset local.ptemplate = local.searchPTemplate.template />
+						
+						<cfif Len(local.ptemplate)>
+							<cfif local.ptemplate EQ "-1">
 								
-							<cfelseif p.getExtendedAttribute("mobiletemplate") EQ "0">
-								<cfset mobileTemplate = p.getTemplate() />
-								<cfset i = false />
+							<cfelseif local.ptemplate EQ "-2">
+								<cfset local.mobileTemplate = local.p.getTemplate() />
+								<cfset local.i = false />
 							<cfelse>
-								<cfset mobileTemplate = p.getExtendedAttribute("mobiletemplate") />
-								<cfset i = false />
+								<cfset local.mobileTemplate = local.ptemplate />
+								<cfset local.i = false />
 							</cfif>
 						</cfif>
 					<cfelse>
-						<cfset mobileTemplate = p.getTemplate() />
-						<cfset i = false />
+						<cfset local.mobileTemplate = local.p.getTemplate() />
+						<cfset local.i = false />
 					</cfif>
 				</cfloop>
 			
 			<!--- Desktop Template --->
-			<cfelseif arguments.contentBean.getValue("mobiletemplate") EQ "-2">
-				<cfset mobileTemplate = "" />
+			<cfelseif local.searchTemplate.template EQ "-2">
+				<cfset local.mobileTemplate = "" />
 			<cfelse>
-				<cfset mobileTemplate = arguments.contentBean.getValue("mobiletemplate") />
+				<cfset local.mobileTemplate = local.searchTemplate.template />
 			</cfif>
 			
 		<!--- the 'mobiletemplate' isn't set --->
 		<cfelse>
-			<cfset mobileTemplate = "" />
+			<cfset local.mobileTemplate = "" />
 		</cfif>
 		
 		<!--- if a mobiletemplate is set and if the file exists --->
-		<cfif Len(mobileTemplate) AND FileExists($.siteConfig().getTemplateIncludeDir() & "/" & mobileTemplate)>
+		<cfif Len(local.mobileTemplate) AND FileExists($.getSite().getTemplateIncludeDir() & "/" & local.mobileTemplate)>
 			<!--- change the template --->
-			<cfset arguments.contentBean.setTemplate(mobileTemplate) />
+			<cfset $.content().setTemplate(mobileTemplate) />
 		</cfif>
 
 		<cfreturn />
 	</cffunction>
 	
-
 	<cffunction name="updateTheme" output="false" returntype="any">
-		<cfargument name="MuraScope" type="Any" required="true">
-		<!---<cflog log="MobileMura" type="information" text="MobileTheme: #getMobileMuraData(session.siteid).getMobileTheme()#" />--->
-		<cfif Len(getMobileMuraData(session.siteid).getMobileTheme())>
-			<!---<cflog log="MobileMura" type="information" text="entered cfif" />--->
-			<cfset MuraScope.event("altTheme",getMobileMuraData(session.siteid).getMobileTheme()) />
-			<cfif fileExists(expandPath(MuraScope.siteConfig('themeIncludePath')) & "/contentRenderer.cfc" )>
-				<cfset themeRenderer=createObject("component","#MuraScope.siteConfig('themeAssetMap')#.contentRenderer").init()>
-				<cfset themeRenderer.injectMethod("mura",MuraScope)>
-				<cfset themeRenderer.injectMethod("$",MuraScope)>
-				<cfset themeRenderer.injectMethod("event",MuraScope.event())>
-				<cfset MuraScope.event("themeRenderer",themeRenderer)>
+		<cfargument name="$" type="Any" required="true">
+		
+		<cfset var local = StructNew() />
+		
+		<cfquery name="local.searchTheme" datasource="#local.dsn#" >
+			SELECT	*
+			FROM	mm_detection
+			WHERE	site_id = '#$.getSite().getSiteID()#'
+		</cfquery>
+		<cfset local.theme = local.searchTheme.theme />
+
+		<cfif local.searchTheme.recordCount AND local.theme NEQ "-1">
+			<cfset $.event("altTheme",local.theme) />
+			<cfif fileExists(expandPath($.siteConfig('themeIncludePath')) & "/contentRenderer.cfc" )>
+				<cfset local.themeRenderer=createObject("component","#$.siteConfig('themeAssetMap')#.contentRenderer").init()>
+				<cfset local.themeRenderer.injectMethod("mura",$)>
+				<cfset local.themeRenderer.injectMethod("$",$)>
+				<cfset local.themeRenderer.injectMethod("event",$.event())>
+				<cfset $.event("themeRenderer",themeRenderer)>
 			</cfif>
-			<!---<cflog log="MobileMura" type="information" text="altTheme: #MuraScope.event('altTheme')#" />--->
 		</cfif>
 		<cfreturn />
 	</cffunction>
+	
+	<cffunction name="MMupdateTemplate" output="false" returntype="any" access="public" >
+		<cfargument name="$" type="Any" required="true">
+		<cfargument name="mm_ua_settings_id" type="Any" required="true">
+		
+		<cfset var local = StructNew() />
+		<cfset local.dsn = $.globalConfig().getDatasource() />
 
+		<cfset local.c = $.content() />
+		<cfset local.p = $.content() />
+		
+		<cfset local.mobileTemplate = "" />
+		
+		<!--- check if a template is set --->
+		<!--- inherit from parent == empty string --->
+		<!--- if the template is an empty string: look for the parents template --->
+		<cfquery name="local.searchTemplate" datasource="#local.dsn#" >
+			SELECT	*
+			FROM	mm_content
+			WHERE	site_id = '#$.getSite().getSiteID()#'
+			AND		content_id = '#local.c.getContentID()#'
+			AND		mm_ua_settings_id = '#arguments.mm_ua_settings_id#'
+		</cfquery>
+		<cfset local.template = local.searchTemplate.template />
+		<cfloop condition="NOT Len(local.template)" >
+			<!--- get the template --->
+			<cfset local.c = local.c.getParent() />
+			<cfquery name="local.searchParentTemplate" datasource="#local.dsn#" >
+				SELECT	*
+				FROM	mm_content
+				WHERE	site_id = '#$.getSite().getSiteID()#'
+				AND		content_id = '#local.c.getContentID()#'
+				AND		mm_ua_settings_id = '#arguments.mm_ua_settings_id#'
+			</cfquery>
+			<cfset local.template = local.searchParentTemplate.template />
+		</cfloop>
+		
+		<!--- the 'mobiletemplate' is set --->
+		<cfif Len(local.searchTemplate.template)>
+			
+			<!--- Inherit From Parent --->
+			<cfif local.searchTemplate.template EQ "-1">
+				<cfset local.i = true />
+				<cfloop condition="local.i" >
+					<cfif local.p.hasParent()>
+						<cfset local.p = local.p.getParent() />
+						
+						<cfquery name="local.searchPTemplate" datasource="#local.dsn#" >
+							SELECT	*
+							FROM	mm_content
+							WHERE	site_id = '#$.getSite().getSiteID()#'
+							AND		content_id = '#local.c.getContentID()#'
+							AND		mm_ua_settings_id = '#arguments.mm_ua_settings_id#'
+						</cfquery>
+						<cfset local.ptemplate = local.searchPTemplate.template />
+						
+						<cfif Len(local.ptemplate)>
+							<cfif local.ptemplate EQ "-1">
+								
+							<cfelseif local.ptemplate EQ "-2">
+								<cfset local.mobileTemplate = local.p.getTemplate() />
+								<cfset local.i = false />
+							<cfelse>
+								<cfset local.mobileTemplate = local.ptemplate />
+								<cfset local.i = false />
+							</cfif>
+						</cfif>
+					<cfelse>
+						<cfset local.mobileTemplate = local.p.getTemplate() />
+						<cfset local.i = false />
+					</cfif>
+				</cfloop>
+			
+			<!--- Desktop Template --->
+			<cfelseif local.searchTemplate.template EQ "-2">
+				<cfset local.mobileTemplate = "" />
+			<cfelse>
+				<cfset local.mobileTemplate = local.searchTemplate.template />
+			</cfif>
+			
+		<!--- the 'mobiletemplate' isn't set --->
+		<cfelse>
+			<cfset local.mobileTemplate = "" />
+		</cfif>
+		
+		<!--- if a mobiletemplate is set and if the file exists --->
+		<cfif Len(local.mobileTemplate) AND FileExists($.getSite().getTemplateIncludeDir() & "/" & local.mobileTemplate)>
+			<!--- change the template --->
+			<cfset $.content().setTemplate(mobileTemplate) />
+		</cfif>
+
+		<cfreturn />
+	</cffunction>
 	
-	<cffunction name="getMobileMuraData" output="false" returntype="any">
-		<cfargument name="siteID" type="Any" required="true">
-	
-		<cfset var myDataObject	= createObject("component","mura.extend.extendObject").init(Type="Custom",SubType="MobileMuraData",SiteID=arguments.siteID)>
-	
-		<cfset myDataObject.setID( siteID ) />
-	
-		<cfreturn myDataObject />
+	<cffunction name="MMupdateTheme" output="false" returntype="any">
+		<cfargument name="$" type="Any" required="true">
+		
+		<cfset var local = StructNew() />
+		
+		<cfquery name="local.searchTheme" datasource="#local.dsn#" >
+			SELECT	*
+			FROM	mm_ua_settings
+			WHERE	site_id = '#$.getSite().getSiteID()#'
+			AND		name = '#request.MobileMuraMobileRequest#'
+		</cfquery>
+		<cfset local.theme = local.searchTheme.theme />
+
+		<cfif local.searchTheme.recordCount AND local.theme NEQ "-1">
+			<cfset $.event("altTheme",local.theme) />
+			<cfif fileExists(expandPath($.siteConfig('themeIncludePath')) & "/contentRenderer.cfc" )>
+				<cfset local.themeRenderer=createObject("component","#$.siteConfig('themeAssetMap')#.contentRenderer").init()>
+				<cfset local.themeRenderer.injectMethod("mura",$)>
+				<cfset local.themeRenderer.injectMethod("$",$)>
+				<cfset local.themeRenderer.injectMethod("event",$.event())>
+				<cfset $.event("themeRenderer",themeRenderer)>
+			</cfif>
+		</cfif>
+		<cfreturn />
 	</cffunction>
 
 </cfcomponent>
