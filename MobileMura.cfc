@@ -238,7 +238,7 @@ limitations under the License.
 			SELECT	*
 			FROM	mm_ua_settings
 			WHERE	site_id = '#$.getSite().getSiteID()#'
-			AND		name = '#request.muraMobileRequest#'
+			AND		name = '#request.mobileMuraRequest#'
 		</cfquery>
 		<cfset local.theme = local.searchTheme.theme />
 

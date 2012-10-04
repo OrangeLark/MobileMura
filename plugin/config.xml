@@ -31,7 +31,9 @@ limitations under the License.
 	<EventHandlers>
 		<eventHandler event="onApplicationLoad" component="event.pluginEventHandler" persist="true" />
 		<eventHandler event="onSiteRequestStart" component="event.pluginEventHandler" persist="true" />
+		<eventHandler event="onGlobalRequestStart" component="event.pluginEventHandler" persist="true" />
 		<eventHandler event="standardMobileHandler" component="event.pluginEventHandler" persist="true" />
+		<eventHandler event="standardMobileValidator" component="event.pluginEventHandler" persist="true" />
 		<eventHandler event="onGlobalMobileDetection" component="event.pluginEventHandler" persist="true" />
 		<eventHandler event="onContentEdit" component="event.pluginEventHandler" persist="true" />
 		<eventHandler event="onAfterContentSave" component="event.pluginEventHandler" persist="true" />

@@ -53,6 +53,23 @@ limitations under the License.
 			$.mfw1 = this;
 		</cfscript>
 	</cffunction>
+
+	<cffunction name="onGlobalRequestStart" output="false" returntype="any">
+		<cfargument name="$" />
+
+		<cfif isDefined("form.mobileMuraFormat")>
+			<cfcookie name="mobileMuraFormat" value="#form.mobileMuraFormat#" />
+			<cfcookie name="mobileFormat" value="true" />
+			<cfset request.muraMobileRequest = true />
+		<cfelseif isDefined("url.mobileMuraFormat")>
+			<cfcookie name="mobileMuraFormat" value="#url.mobileMuraFormat#" />
+			<cfcookie name="mobileFormat" value="true" />
+			<cfset request.muraMobileRequest = true />
+		</cfif>
+
+		<cfset request.mobileMuraRequest = cookie.mobileMuraFormat />
+		
+	</cffunction>
 	
 	<cffunction name="onGlobalMobileDetection" output="false">
         <cfargument name="$" required="true" hint="mura scope" />
@@ -68,7 +85,7 @@ limitations under the License.
 		
 		<cfif local.getDetection.detection NEQ "1">
 
-			<cfif not isdefined("cookie.MM_mobileFormat")>
+			<cfif NOT isdefined("cookie.mobileMuraFormat")>
 				
 				<cfquery name="local.getUASettings" datasource="#local.dsn#" >
 					SELECT	ua_string, name
@@ -77,17 +94,33 @@ limitations under the License.
 				</cfquery>
 				
 				<cfloop query="local.getUASettings" >
-					<cfif reFindNoCase("(" & ListChangeDelims(local.getUASettings.ua_string, ")(") & ")",CGI.HTTP_USER_AGENT)>
-						<cfcookie name="mobileFormat" value="#local.getUASettings.name#" />
+					<cfif reFindNoCase(local.getUASettings.ua_string,CGI.HTTP_USER_AGENT)>
+						<cfcookie name="mobileFormat" value="true" />
+						<cfset request.muraMobileRequest = true />
+						<cfcookie name="mobileMuraFormat" value="#local.getUASettings.name#" />
+						<cfset request.mobileMuraRequest = local.getUASettings.name />
+						<cfbreak />
 					<cfelse>
 						<cfcookie name="mobileFormat" value="false" />
+						<cfset request.muraMobileRequest = false />
+						<cfcookie name="mobileMuraFormat" value="false" />
+						<cfset request.mobileMuraRequest = false />
 					</cfif>
 				</cfloop>
-				
+			<cfelse>
+				<cfset request.muraMobileRequest = true />
+				<cfset request.mobileMuraRequest = cookie.mobileMuraFormat />
 			</cfif>
 		</cfif>
 		
     </cffunction>
+	
+	<cffunction name="standardMobileValidator" output="false" returnType="any">
+		<cfargument name="event" required="true">
+		<cfif request.muraMobileRequest and not len(arguments.event.getValue('altTheme'))>
+			<cfset arguments.event.getHandler("standardMobile").handle(arguments.event)>
+		</cfif>
+	</cffunction>
 
 	<cffunction name="standardMobileHandler" output="false" returntype="any">
 		<cfargument name="$" />
@@ -111,7 +144,7 @@ limitations under the License.
 				SELECT	mm_ua_settings_id, name
 				FROM	mm_ua_settings
 				WHERE	site_id = '#$.getSite().getSiteId()#'
-				AND		name = '#request.muraMobileRequest#'
+				AND		name = '#request.mobileMuraRequest#'
 			</cfquery>
 
 			<cfset local.MobileMura.MMupdateTemplate($, local.getUASettings.mm_ua_settings_id) />
