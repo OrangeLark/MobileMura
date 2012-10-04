@@ -53,20 +53,6 @@ limitations under the License.
 			$.mfw1 = this;
 		</cfscript>
 	</cffunction>
-
-	<cffunction name="onGlobalRequestStart" output="false" returntype="any" >
-		<cfargument name="$" />
-
-		<cfif StructKeyExists(cookie, "MM_mobileFormat")>
-			<cfset request.MobileMuraMobileRequest = cookie.MM_mobileFormat />
-		</cfif>
-
-		<cfif StructKeyExists(url, "MM_mobileFormat")>
-			<cfcookie name="MM_mobileFormat" value="#url.MM_mobileFormat#" />
-			<cfset request.MobileMuraMobileRequest = cookie.MM_mobileFormat />
-		</cfif>
-		
-	</cffunction>
 	
 	<cffunction name="onGlobalMobileDetection" output="false">
         <cfargument name="$" required="true" hint="mura scope" />
@@ -77,10 +63,8 @@ limitations under the License.
 		<cfquery name="local.getDetection" datasource="#local.dsn#" >
 			SELECT	detection
 			FROM	mm_detection
-			WHERE	site_id = '#$.getSite().getSiteId()#'
+			WHERE	site_id = '#listGetAt(cgi.script_name,listLen(cgi.script_name,"/")-1,"/")#'
 		</cfquery>
-		
-		<cfset request.MobileMuraMobileRequest = "" />
 		
 		<cfif local.getDetection.detection NEQ "1">
 
@@ -89,22 +73,18 @@ limitations under the License.
 				<cfquery name="local.getUASettings" datasource="#local.dsn#" >
 					SELECT	ua_string, name
 					FROM	mm_ua_settings
-					WHERE	site_id = '#$.getSite().getSiteId()#'
+					WHERE	site_id = '#listGetAt(cgi.script_name,listLen(cgi.script_name,"/")-1,"/")#'
 				</cfquery>
 				
 				<cfloop query="local.getUASettings" >
 					<cfif reFindNoCase("(" & ListChangeDelims(local.getUASettings.ua_string, ")(") & ")",CGI.HTTP_USER_AGENT)>
-						<cfcookie name="mobileFormat" value="true" />
-						<cfcookie name="MM_mobileFormat" value="#local.getUASettings.name#" />
+						<cfcookie name="mobileFormat" value="#local.getUASettings.name#" />
 					<cfelse>
 						<cfcookie name="mobileFormat" value="false" />
-						<cfcookie name="MM_mobileFormat" value="false" />
 					</cfif>
 				</cfloop>
 				
 			</cfif>
-		
-			<cfset request.MobileMuraMobileRequest = cookie.MM_mobileFormat />
 		</cfif>
 		
     </cffunction>
@@ -131,7 +111,7 @@ limitations under the License.
 				SELECT	mm_ua_settings_id, name
 				FROM	mm_ua_settings
 				WHERE	site_id = '#$.getSite().getSiteId()#'
-				AND		name = '#request.MobileMuraMobileRequest#'
+				AND		name = '#request.muraMobileRequest#'
 			</cfquery>
 
 			<cfset local.MobileMura.MMupdateTemplate($, local.getUASettings.mm_ua_settings_id) />

@@ -113,6 +113,7 @@ limitations under the License.
 		<cfargument name="$" type="Any" required="true">
 		
 		<cfset var local = StructNew() />
+		<cfset local.dsn = $.globalConfig().getDatasource() />
 		
 		<cfquery name="local.searchTheme" datasource="#local.dsn#" >
 			SELECT	*
@@ -231,12 +232,13 @@ limitations under the License.
 		<cfargument name="$" type="Any" required="true">
 		
 		<cfset var local = StructNew() />
+		<cfset local.dsn = $.globalConfig().getDatasource() />
 		
 		<cfquery name="local.searchTheme" datasource="#local.dsn#" >
 			SELECT	*
 			FROM	mm_ua_settings
 			WHERE	site_id = '#$.getSite().getSiteID()#'
-			AND		name = '#request.MobileMuraMobileRequest#'
+			AND		name = '#request.muraMobileRequest#'
 		</cfquery>
 		<cfset local.theme = local.searchTheme.theme />
 
