@@ -83,9 +83,6 @@ limitations under the License.
 	<cffunction name="delete" returntype="void" access="public" output="true">
 
 		<cfset var local = StructNew()/>
-		
-		<cfdump var="#variables.configBean.getDatasource()#" >
-		<cfabort />
 
 		<cfset this.deleteMMUASettings() />
 		<cfset this.deleteMMContent() />

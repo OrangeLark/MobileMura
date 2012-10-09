@@ -67,7 +67,11 @@ limitations under the License.
 			<cfset request.muraMobileRequest = true />
 		</cfif>
 
-		<cfset request.mobileMuraRequest = cookie.mobileMuraFormat />
+		<cfif isDefined('cookie.mobileMuraFormat')>
+			<cfset request.mobileMuraRequest = cookie.mobileMuraFormat />
+		<cfelse>
+			<cfset request.mobileMuraRequest = false />
+		</cfif>
 		
 	</cffunction>
 	
