@@ -84,6 +84,8 @@ limitations under the License.
 
 		<cfset var local = StructNew()/>
 
+		<cfset $ = application.serviceFactory.getBean("muraScope")/>
+
 		<cfset this.deleteMMUASettings() />
 		<cfset this.deleteMMContent() />
 		<cfset this.deleteMMDetection() />
