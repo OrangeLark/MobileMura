@@ -56,9 +56,9 @@ limitations under the License.
 					<td><span class="input-large uneditable-input">ipod</span></td>
 					<td>
 						<select name="iPod_mobileTheme">
-							<option value="-1" <cfif local.MMDetectionSettings.iPod_mobileTheme EQ "-1">selected="selected"</cfif>>No mobile theme selected</option>
+							<option value="-1" <cfif local.MMDetectionSettings["iPod"] EQ "-1">selected="selected"</cfif>>No mobile theme selected</option>
 							<cfloop query="local.themes">
-								<option value="#local.themes.name#" <cfif local.MMDetectionSettings.iPod_mobileTheme EQ local.themes.name>selected="selected"</cfif>>#local.themes.name#</option>
+								<option value="#local.themes.name#" <cfif local.MMDetectionSettings["iPod"] EQ local.themes.name>selected="selected"</cfif>>#local.themes.name#</option>
 							</cfloop>
 						</select>
 					</td>
@@ -68,9 +68,9 @@ limitations under the License.
 					<td><span class="input-large uneditable-input">iphone</span></td>
 					<td>
 						<select name="iPhone_mobileTheme">
-							<option value="-1" <cfif local.MMDetectionSettings.iPhone_mobileTheme EQ "-1">selected="selected"</cfif>>No mobile theme selected</option>
+							<option value="-1" <cfif local.MMDetectionSettings["iPhone"] EQ "-1">selected="selected"</cfif>>No mobile theme selected</option>
 							<cfloop query="local.themes">
-								<option value="#local.themes.name#" <cfif local.MMDetectionSettings.iPhone_mobileTheme EQ local.themes.name>selected="selected"</cfif>>#local.themes.name#</option>
+								<option value="#local.themes.name#" <cfif local.MMDetectionSettings["iPhone"] EQ local.themes.name>selected="selected"</cfif>>#local.themes.name#</option>
 							</cfloop>
 						</select>
 					</td>
@@ -80,9 +80,9 @@ limitations under the License.
 					<td><span class="input-large uneditable-input">ipad</span></td>
 					<td>
 						<select name="iPad_mobileTheme">
-							<option value="-1" <cfif local.MMDetectionSettings.iPad_mobileTheme EQ "-1">selected="selected"</cfif>>No mobile theme selected</option>
+							<option value="-1" <cfif local.MMDetectionSettings["iPad"] EQ "-1">selected="selected"</cfif>>No mobile theme selected</option>
 							<cfloop query="local.themes">
-								<option value="#local.themes.name#" <cfif local.MMDetectionSettings.iPad_mobileTheme EQ local.themes.name>selected="selected"</cfif>>#local.themes.name#</option>
+								<option value="#local.themes.name#" <cfif local.MMDetectionSettings["iPad"] EQ local.themes.name>selected="selected"</cfif>>#local.themes.name#</option>
 							</cfloop>
 						</select>
 					</td>
@@ -100,9 +100,9 @@ limitations under the License.
 					<td><span class="input-large uneditable-input">android,mobile</span></td>
 					<td>
 						<select name="AndroidPhone_mobileTheme">
-							<option value="-1" <cfif local.MMDetectionSettings.AndroidPhone_mobileTheme EQ "-1">selected="selected"</cfif>>No mobile theme selected</option>
+							<option value="-1" <cfif local.MMDetectionSettings["Android Phone"] EQ "-1">selected="selected"</cfif>>No mobile theme selected</option>
 							<cfloop query="local.themes">
-								<option value="#local.themes.name#" <cfif local.MMDetectionSettings.AndroidPhone_mobileTheme EQ local.themes.name>selected="selected"</cfif>>#local.themes.name#</option>
+								<option value="#local.themes.name#" <cfif local.MMDetectionSettings["Android Phone"] EQ local.themes.name>selected="selected"</cfif>>#local.themes.name#</option>
 							</cfloop>
 						</select>
 					</td>
@@ -112,9 +112,9 @@ limitations under the License.
 					<td><span class="input-large uneditable-input">android</span></td>
 					<td>
 						<select name="AndroidTablet_mobileTheme">
-							<option value="-1" <cfif local.MMDetectionSettings.AndroidTablet_mobileTheme EQ "-1">selected="selected"</cfif>>No mobile theme selected</option>
+							<option value="-1" <cfif local.MMDetectionSettings["Android Tablet"] EQ "-1">selected="selected"</cfif>>No mobile theme selected</option>
 							<cfloop query="local.themes">
-								<option value="#local.themes.name#" <cfif local.MMDetectionSettings.AndroidTablet_mobileTheme EQ local.themes.name>selected="selected"</cfif>>#local.themes.name#</option>
+								<option value="#local.themes.name#" <cfif local.MMDetectionSettings["Android Tablet"] EQ local.themes.name>selected="selected"</cfif>>#local.themes.name#</option>
 							</cfloop>
 						</select>
 					</td>
@@ -132,9 +132,9 @@ limitations under the License.
 					<td><span class="input-large uneditable-input">blackberry</span></td>
 					<td>
 						<select name="BlackBerryPhone_mobileTheme">
-							<option value="-1" <cfif local.MMDetectionSettings.BlackBerryPhone_mobileTheme EQ "-1">selected="selected"</cfif>>No mobile theme selected</option>
+							<option value="-1" <cfif local.MMDetectionSettings["BlackBerry Phone"] EQ "-1">selected="selected"</cfif>>No mobile theme selected</option>
 							<cfloop query="local.themes">
-								<option value="#local.themes.name#" <cfif local.MMDetectionSettings.BlackBerryPhone_mobileTheme EQ local.themes.name>selected="selected"</cfif>>#local.themes.name#</option>
+								<option value="#local.themes.name#" <cfif local.MMDetectionSettings["BlackBerry Phone"] EQ local.themes.name>selected="selected"</cfif>>#local.themes.name#</option>
 							</cfloop>
 						</select>
 					</td>
@@ -144,9 +144,9 @@ limitations under the License.
 					<td><span class="input-large uneditable-input">rim tablet</span></td>
 					<td>
 						<select name="BlackBerryTablet_mobileTheme">
-							<option value="-1" <cfif local.MMDetectionSettings.BlackBerryTablet_mobileTheme EQ "-1">selected="selected"</cfif>>No mobile theme selected</option>
+							<option value="-1" <cfif local.MMDetectionSettings["BlackBerry Tablet"] EQ "-1">selected="selected"</cfif>>No mobile theme selected</option>
 							<cfloop query="local.themes">
-								<option value="#local.themes.name#" <cfif local.MMDetectionSettings.BlackBerryTablet_mobileTheme EQ local.themes.name>selected="selected"</cfif>>#local.themes.name#</option>
+								<option value="#local.themes.name#" <cfif local.MMDetectionSettings["BlackBerry Tablet"] EQ local.themes.name>selected="selected"</cfif>>#local.themes.name#</option>
 							</cfloop>
 						</select>
 					</td>
@@ -164,9 +164,9 @@ limitations under the License.
 					<td><span class="input-large uneditable-input">windows phone os</span></td>
 					<td>
 						<select name="WindowsMobilePhone_mobileTheme">
-							<option value="-1" <cfif local.MMDetectionSettings.WindowsMobilePhone_mobileTheme EQ "-1">selected="selected"</cfif>>No mobile theme selected</option>
+							<option value="-1" <cfif local.MMDetectionSettings["Windows Mobile Phone"] EQ "-1">selected="selected"</cfif>>No mobile theme selected</option>
 							<cfloop query="local.themes">
-								<option value="#local.themes.name#" <cfif local.MMDetectionSettings.WindowsMobilePhone_mobileTheme EQ local.themes.name>selected="selected"</cfif>>#local.themes.name#</option>
+								<option value="#local.themes.name#" <cfif local.MMDetectionSettings["Windows Mobile Phone"] EQ local.themes.name>selected="selected"</cfif>>#local.themes.name#</option>
 							</cfloop>
 						</select>
 					</td>

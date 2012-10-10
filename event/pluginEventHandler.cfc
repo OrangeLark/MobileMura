@@ -316,14 +316,14 @@ limitations under the License.
 		</cfquery>
 		
 		<cfset local.MMDetectionSettings = StructNew() />
-		<cfset local.MMDetectionSettings.iPod_mobileTheme = "" />
-		<cfset local.MMDetectionSettings.iPhone_mobileTheme = "" />
-		<cfset local.MMDetectionSettings.iPad_mobileTheme = "" />
-		<cfset local.MMDetectionSettings.AndroidPhone_mobileTheme = "" />
-		<cfset local.MMDetectionSettings.AndroidTablet_mobileTheme = "" />
-		<cfset local.MMDetectionSettings.BlackBerryPhone_mobileTheme = "" />
-		<cfset local.MMDetectionSettings.BlackBerryTablet_mobileTheme = "" />
-		<cfset local.MMDetectionSettings.WindowsMobilePhone_mobileTheme = "" />
+		<cfset local.MMDetectionSettings["iPod"] = "" />
+		<cfset local.MMDetectionSettings["iPhone"] = "" />
+		<cfset local.MMDetectionSettings["iPad"] = "" />
+		<cfset local.MMDetectionSettings["Android Phone"] = "" />
+		<cfset local.MMDetectionSettings["Android Tablet"] = "" />
+		<cfset local.MMDetectionSettings["BlackBerry Phone"] = "" />
+		<cfset local.MMDetectionSettings["BlackBerry Tablet"] = "" />
+		<cfset local.MMDetectionSettings["Windows Mobile Phone"] = "" />
 		
 		<cfif local.getDetection.detection EQ 2>
 		<cfloop query="local.getMMDetectionSettings" >
