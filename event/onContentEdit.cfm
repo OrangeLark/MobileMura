@@ -19,6 +19,7 @@ limitations under the License.
 --->
 
 <cfoutput>
+<div class="fieldset">
 <cfif local.getDetection.detection EQ 1>
 	<div class="control-group">
 		<label class="control-label">
@@ -81,4 +82,5 @@ limitations under the License.
 		</cfloop>
 	</table>
 </cfif>
+</div>
 </cfoutput>
