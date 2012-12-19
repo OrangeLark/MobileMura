@@ -91,24 +91,38 @@ limitations under the License.
 
 			<cfif NOT isdefined("cookie.mobileMuraFormat")>
 				
+				<!--- get the configured devices from the DB --->
 				<cfquery name="local.getUASettings" datasource="#local.dsn#" >
 					SELECT	ua_string, name
 					FROM	mm_ua_settings
 					WHERE	site_id = '#listGetAt(cgi.script_name,listLen(cgi.script_name,"/")-1,"/")#'
 				</cfquery>
 				
+				<!--- loop over the devices --->
 				<cfloop query="local.getUASettings" >
-					<cfif reFindNoCase(local.getUASettings.ua_string,CGI.HTTP_USER_AGENT)>
+					<cfset local.thisDevice = false />
+					
+					<!--- loop over the different keywords --->
+					<cfloop list="#local.getUASettings.ua_string#" index="i" >
+						<cfif reFindNoCase(i,CGI.HTTP_USER_AGENT)>
+							<!--- keyword found --->
+							<!--- match still possible --->
+							<cfset local.thisDevice = true />
+						<cfelse>
+							<!--- keyword not found --->
+							<!--- match impossible --->
+							<cfset local.thisDevice = false />
+							<cfbreak />
+						</cfif>
+					</cfloop>
+					
+					<!--- if the devices matches --->
+					<cfif local.thisDevice>
 						<cfcookie name="mobileFormat" value="true" />
 						<cfset request.muraMobileRequest = true />
 						<cfcookie name="mobileMuraFormat" value="#local.getUASettings.name#" />
 						<cfset request.mobileMuraRequest = local.getUASettings.name />
 						<cfbreak />
-					<cfelse>
-						<cfcookie name="mobileFormat" value="false" />
-						<cfset request.muraMobileRequest = false />
-						<cfcookie name="mobileMuraFormat" value="false" />
-						<cfset request.mobileMuraRequest = false />
 					</cfif>
 				</cfloop>
 			<cfelse>
