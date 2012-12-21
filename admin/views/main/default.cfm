@@ -29,6 +29,12 @@ limitations under the License.
 	<h3>Why?</h3>
 	<p>Since version 5.4, Mura CMS has basic support for mobile devices. It allows you to have a specific template (mobile.cfm) that will be used to render the website for mobile devices. But when you want to go further with your optimization, you might need to customize display objects, use specific resource bundles, create an adapted contentRenderer and eventHandler, use multiple templates, defince your own device detection etc. With MobileMura you'll be able to do all of this and more!</p>
 	
+	<h3>Requirements</h3>
+	<ul>
+		<li>ColdFusion 9, 10 or Railo 3.3+</li>
+		<li>Mura CMS 6</li>
+	</ul>
+	
 	<h3>Features</h3>
 	<h4>Version 2.0</h4>
 	<ul>

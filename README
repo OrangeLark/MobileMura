@@ -7,6 +7,11 @@ MobileMura is a plugin that adds advanced mobile features to Mura CMS.
 
 Since version 5.4, Mura CMS has basic support for mobile devices. It allows you to have a specific template (mobile.cfm) that will be used to render the website for mobile devices. But when you want to go further with your optimization, you might need to customize display objects, use specific resource bundles, create an adapted contentRenderer and eventHandler, use multiple templates, defince your own device detection etc. With MobileMura you'll be able to do all of this and more!
 	
+# REQUIREMENTS
+
+* ColdFusion 9, 10 or Railo 3.3+
+* Mura CMS 6
+	
 # FEATURES
 
 Version 2.0:
