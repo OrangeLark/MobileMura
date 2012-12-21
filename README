@@ -5,8 +5,29 @@ MobileMura is a plugin that adds advanced mobile features to Mura CMS.
 
 # WHY?
 
-Mobile devices are all around in todays world and on almost all of them you can experience the full internet. But sometimes you want to improve the user experience by optimizing your website for mobile devices.
+Since version 5.4, Mura CMS has basic support for mobile devices. It allows you to have a specific template (mobile.cfm) that will be used to render the website for mobile devices. But when you want to go further with your optimization, you might need to customize display objects, use specific resource bundles, create an adapted contentRenderer and eventHandler, use multiple templates, defince your own device detection etc. With MobileMura you'll be able to do all of this and more!
+	
+# Features
 
-A great example is the website deredactie.be and its mobile version m.deredactie.be of the Flemish Public Broadcaster VRT. The content behind the website is the same but on the mobile version they just want to keep the basic news.
+## Version 2.0
 
-With version 5.4, Mura CMS brings basic support for mobile devices. They allow you to have a specific template (mobile.cfm) that will be used to render the website for mobile devices. But when you want to go further with your optimization, you might need to customize display objects, use specific resource bundles, create an adapted contentRenderer and eventHandler, use multiple templates, etc. With MobileMura you'll be able to do all of this and more!
+* use the build in mobile device detection;
+* use the MobileMura device detection;
+* use your own device detection rules;
+* set a general mobile theme;
+* set a mobile theme per device;
+* set a general mobile template;
+* set a mobile template per device;
+* a display object for switching between the mobile and desktop version.
+
+##Version 1.1
+
+* specific theme for mobile devices;
+* specific template (per item) for mobile devices;
+* a display object for switching between the mobile and desktop version.
+	
+# About
+
+MobileMura is a plugin by Orange Lark (http://www.orangelark.be).
+
+Special thanks to Raul Delgado (http://www.rdcube.com/), ModMedia (http://www.themodmedia.com) and Blue River Interactive (http://www.blueriver.com).

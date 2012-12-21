@@ -24,13 +24,6 @@ limitations under the License.
 	<cfoutput>
 		<div class="mfw1adminblock">
 			<div id="pageTitle"><h2>#rc.pc.getPackage()#</h2></div>
-			<div class="navTask">
-				<ul>
-					<li class="first<cfif rc.action eq 'admin:main.default'> active</cfif>"><a href="#buildURL('admin:main')#">Main</a></li>
-					<li<cfif rc.action eq 'admin:settings.settings'> class="active"</cfif>><a href="#buildURL('admin:settings.settings')#">Settings</a></li>
-					<li class="last"><a href="#buildURL('admin:main.faq')#">FAQ</a></li>
-				</ul>
-			</div>
 		</div>
 
 		<cfif StructKeyExists(rc, 'errors') and IsArray(rc.errors) and ArrayLen(rc.errors)>

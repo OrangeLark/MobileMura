@@ -22,14 +22,33 @@ limitations under the License.
 
 <cfoutput>
 	<p>Thank you for installing mobileMura!</p>
-	<h3>What's next?</h3>
-	<h4>Set a mobile theme for your website</h4>
-	<p>Select a different theme to be used when a visitor browses your website from a mobile device.</p>
-	<p><em>How?</em> Open the settings in the menu above and set the theme to be used a mobile theme.</p>
-	<h4>Set a mobile template for your items</h4>
-	<p>Select the tempate from your mobile theme to be used for your items (pages/portals/calendars/...).</p>
-	<p><em>How?</em> In the details page of the item you'll find a new tab "mobileMura" where you can set the template to be used for mobile devices.</p>
-	<h4>Add a mobile switcher</h4>
-	<p>Allow visitors to switch between the desktop and mobile version of your website.</p>
-	<p><em>How?</em> Open the home page of your website and select the "Content Objects" tab. In the "Available Content Objects" selectbox you choose "Plugins" and in the selectbox below you select "mobileMura". Now you can select the "Mobile Switcher" content object and add it to one of the content object groups at the right.</p>
+	
+	<h3>What?</h3>
+	<p>MobileMura is a plugin that adds advanced mobile features to Mura CMS.</p>
+	
+	<h3>Why?</h3>
+	<p>Since version 5.4, Mura CMS has basic support for mobile devices. It allows you to have a specific template (mobile.cfm) that will be used to render the website for mobile devices. But when you want to go further with your optimization, you might need to customize display objects, use specific resource bundles, create an adapted contentRenderer and eventHandler, use multiple templates, defince your own device detection etc. With MobileMura you'll be able to do all of this and more!</p>
+	
+	<h3>Features</h3>
+	<h4>Version 2.0</h4>
+	<ul>
+		<li>use the build in mobile device detection;</li>
+		<li>use the MobileMura device detection;</li>
+		<li>use your own device detection rules;</li>
+		<li>set a general mobile theme;</li>
+		<li>set a mobile theme per device;</li>
+		<li>set a general mobile template;</li>
+		<li>set a mobile template per device;</li>
+		<li>a display object for switching between the mobile and desktop version.</li>
+	</ul>
+	<h4>Version 1.1</h4>
+	<ul>
+		<li>specific theme for mobile devices;</li>
+		<li>specific template (per item) for mobile devices;</li>
+		<li>a display object for switching between the mobile and desktop version.</li>
+	</ul>
+	
+	<h3>About</h3>
+	<p>MobileMura is a plugin by <a href="http://www.orangelark.be" target="_blank">Orange Lark</a>.</p>
+	<p>Special thanks to <a href="http://www.rdcube.com/" target="_blank">Raul Delgado</a>, <a href="http://www.themodmedia.com" target="_blank">ModMedia</a> and <a href="http://www.blueriver.com" target="_blank">Blue River Interactive</a>.
 </cfoutput>
