@@ -20,7 +20,7 @@ Since version 5.4, Mura CMS has basic support for mobile devices. It allows you 
 * set a mobile template per device;
 * a display object for switching between the mobile and desktop version.
 
-##Version 1.1
+## Version 1.1
 
 * specific theme for mobile devices;
 * specific template (per item) for mobile devices;
