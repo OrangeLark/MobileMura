@@ -48,6 +48,9 @@ limitations under the License.
 		<li>a display object for switching between the mobile and desktop version.</li>
 	</ul>
 	
+	<h3>License</h3>
+	<p>Apache License Version 2.0, January 2004</p>
+	
 	<h3>About</h3>
 	<p>MobileMura is a plugin by <a href="http://www.orangelark.be" target="_blank">Orange Lark</a>.</p>
 	<p>Special thanks to <a href="http://www.rdcube.com/" target="_blank">Raul Delgado</a>, <a href="http://www.themodmedia.com" target="_blank">ModMedia</a> and <a href="http://www.blueriver.com" target="_blank">Blue River Interactive</a>.
