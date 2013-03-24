@@ -46,12 +46,12 @@ limitations under the License.
 			<cfset local.dsn = $.globalConfig().getDatasource() />
 
 			<!--- CREATE TABLES --->
-			<cfset this.createMMUASettingsTable() />
-			<cfset this.createMMContentTable() />
-			<cfset this.createMMDetectionTable() />
+			<cfset createMMUASettingsTable() />
+			<cfset createMMContentTable() />
+			<cfset createMMDetectionTable() />
 			
 			<!--- SETUP SITES --->
-			<cfset this.setupSites(local.dsn) />
+			<cfset setupSites(local.dsn) />
 			
 		</cfif>
 		<cfset application.appInitialized = false/>
@@ -71,12 +71,12 @@ limitations under the License.
 		<cfset local.dsn = $.globalConfig().getDatasource() />
 
 		<!--- CREATE TABLES --->
-		<cfset this.createMMUASettingsTable() />
-		<cfset this.createMMContentTable() />
-		<cfset this.createMMDetectionTable() />
+		<cfset createMMUASettingsTable() />
+		<cfset createMMContentTable() />
+		<cfset createMMDetectionTable() />
 		
 		<!--- SETUP SITES --->
-		<cfset this.setupSites(local.dsn) />
+		<cfset setupSites(local.dsn) />
 		
 	</cffunction>
 	
@@ -86,9 +86,9 @@ limitations under the License.
 
 		<cfset $ = application.serviceFactory.getBean("muraScope")/>
 
-		<cfset this.deleteMMUASettings() />
-		<cfset this.deleteMMContent() />
-		<cfset this.deleteMMDetection() />
+		<cfset deleteMMUASettings() />
+		<cfset deleteMMContent() />
+		<cfset deleteMMDetection() />
 
 		<cfset application.appInitialized = false/>
 		
@@ -104,9 +104,9 @@ limitations under the License.
 		<cfset local.dsn = $.globalConfig().getDatasource() />
 		
 		<!--- BUNDLE TABLES --->
-		<cfset arguments.bundle.setValue('mm_MMUASettings', this.bundleMMUASettings(local.dsn)) />
-		<cfset arguments.bundle.setValue('mm_MMContent', this.bundleMMContent(local.dsn)) />
-		<cfset arguments.bundle.setValue('mm_MMDetection', this.bundleMMDetection(local.dsn)) />
+		<cfset arguments.bundle.setValue('mm_MMUASettings', bundleMMUASettings(local.dsn)) />
+		<cfset arguments.bundle.setValue('mm_MMContent', bundleMMContent(local.dsn)) />
+		<cfset arguments.bundle.setValue('mm_MMDetection', bundleMMDetection(local.dsn)) />
 		
 	</cffunction>
 	
@@ -120,14 +120,14 @@ limitations under the License.
 		<cfset local.dsn = $.globalConfig().getDatasource() />
 
 		<!--- CREATE TABLES --->
-		<cfset this.createMMUASettingsTable() />
-		<cfset this.createMMContentTable() />
-		<cfset this.createMMDetectionTable() />
+		<cfset createMMUASettingsTable() />
+		<cfset createMMContentTable() />
+		<cfset createMMDetectionTable() />
 		
 		<!--- RESTORE DATA --->
-		<cfset this.restoreMMUASettings(local.dsn, arguments.bundle.getValue('mm_MMUASettings')) />
-		<cfset this.restoreMMContent(local.dsn, arguments.bundle.getValue('mm_MMContent')) />
-		<cfset this.restoreMMDetection(local.dsn, arguments.bundle.getValue('mm_MMDetection')) />
+		<cfset restoreMMUASettings(local.dsn, arguments.bundle.getValue('mm_MMUASettings')) />
+		<cfset restoreMMContent(local.dsn, arguments.bundle.getValue('mm_MMContent')) />
+		<cfset restoreMMDetection(local.dsn, arguments.bundle.getValue('mm_MMDetection')) />
 
 	</cffunction>
 
