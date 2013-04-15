@@ -81,6 +81,12 @@ limitations under the License.
 		<cfset var local = StructNew() />
 		<cfset local.dsn = $.globalConfig().getDatasource() />
 		
+		<cfif listLen(cgi.script_name,"/") GT 1>
+			<cfset local.site_id = listGetAt(cgi.script_name,listLen(cgi.script_name,"/")-1,"/") />
+		<cfelse>
+			<cfset local.site_id = listGetAt(cgi.script_name,listLen(cgi.script_name,"/"),"/") />
+		</cfif>
+		
 		<cfquery name="local.getDetection" datasource="#local.dsn#" >
 			SELECT	detection
 			FROM	mm_detection
@@ -180,6 +186,8 @@ limitations under the License.
 		<cfargument name="$" />
 		
 		<cfset var local = StructNew() />
+		<cfset var getTemplateSet = "" /
+		
 		<cfset local.dsn = $.globalConfig().getDatasource() />
 		
 		<cfquery name="local.getDetection" datasource="#local.dsn#" >
@@ -211,7 +219,7 @@ limitations under the License.
 				WHERE	site_id = '#$.getSite().getSiteID()#'
 			</cfquery>
 			
-			<cfquery name="local.getTemplateSet" datasource="#local.dsn#" >
+			<cfquery name="getTemplateSet" datasource="#local.dsn#" >
 				SELECT	mm_ua_settings_id, template
 				FROM	mm_content
 				WHERE	site_id = '#$.content().getSiteId()#'
@@ -313,6 +321,8 @@ limitations under the License.
 		<cfargument name="$" />
 		
 		<cfset var local = StructNew() />
+		<cfset var getMMDetectionSettings = "" />
+		
 		<cfset local.dsn = $.globalConfig().getDatasource() />
 		
 		<cfset local.themes = $.siteConfig().getThemes() />
@@ -323,7 +333,7 @@ limitations under the License.
 			WHERE	site_id = "#$.getSite().getSiteId()#"
 		</cfquery>
 		
-		<cfquery name="local.getMMDetectionSettings" datasource="#local.dsn#">
+		<cfquery name="getMMDetectionSettings" datasource="#local.dsn#">
 			SELECT	*
 			FROM	mm_ua_settings
 			WHERE	site_id = "#$.getSite().getSiteId()#"
@@ -340,20 +350,20 @@ limitations under the License.
 		<cfset local.MMDetectionSettings["Windows Mobile Phone"] = "" />
 		
 		<cfif local.getDetection.detection EQ 2>
-		<cfloop query="local.getMMDetectionSettings" >
-			<cfset local.MMDetectionSettings[local.getMMDetectionSettings.name] = local.getMMDetectionSettings.theme />
+		<cfloop query="getMMDetectionSettings" >
+			<cfset local.MMDetectionSettings[getMMDetectionSettings.name] = getMMDetectionSettings.theme />
 		</cfloop>
 		</cfif>
 		<cfif local.getDetection.detection EQ 3 >
 			<cfquery name="local.MMCustomDetectionSettings" dbtype="query" >
 				SELECT	*
-				FROM	local.getMMDetectionSettings
+				FROM	getMMDetectionSettings
 				WHERE	1 = 1
 			</cfquery>
 		<cfelse>
 			<cfquery name="local.MMCustomDetectionSettings" dbtype="query" >
 				SELECT	*
-				FROM	local.getMMDetectionSettings
+				FROM	getMMDetectionSettings
 				WHERE	1 = 0
 			</cfquery>
 		</cfif>

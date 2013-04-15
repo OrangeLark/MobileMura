@@ -60,7 +60,7 @@ limitations under the License.
 			
 			<cfquery name="local.getTemplate" dbtype="query" >
 				SELECT	template
-				FROM	local.getTemplateSet
+				FROM	getTemplateSet
 				WHERE	mm_ua_settings_id = '#local.UASettings.mm_ua_settings_id#'
 			</cfquery>
 	
