@@ -58,9 +58,10 @@ limitations under the License.
 				<cfset local.mobileTemplates = queryNew("", "") />
 			</cfif>
 			
+			<cfset templateSet = local.getTemplateSet />
 			<cfquery name="local.getTemplate" dbtype="query" >
 				SELECT	template
-				FROM	getTemplateSet
+				FROM	templateSet
 				WHERE	mm_ua_settings_id = '#local.UASettings.mm_ua_settings_id#'
 			</cfquery>
 	

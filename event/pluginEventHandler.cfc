@@ -186,7 +186,6 @@ limitations under the License.
 		<cfargument name="$" />
 		
 		<cfset var local = StructNew() />
-		<cfset var getTemplateSet = "" /
 		
 		<cfset local.dsn = $.globalConfig().getDatasource() />
 		
@@ -219,7 +218,7 @@ limitations under the License.
 				WHERE	site_id = '#$.getSite().getSiteID()#'
 			</cfquery>
 			
-			<cfquery name="getTemplateSet" datasource="#local.dsn#" >
+			<cfquery name="local.getTemplateSet" datasource="#local.dsn#" >
 				SELECT	mm_ua_settings_id, template
 				FROM	mm_content
 				WHERE	site_id = '#$.content().getSiteId()#'
