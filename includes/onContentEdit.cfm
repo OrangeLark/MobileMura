@@ -29,8 +29,10 @@ limitations under the License.
 		</label>
 		<div class="controls">
 			<select id="mobiletemplate" name="mobiletemplate" class="dropdown" >
-				<option selected="selected" value="-1">Inherit From Parent</option>
-				<option value="-2">Desktop Template</option>
+				<cfif $.content().getContentId() neq "00000000000000000000000000000000001">
+					<option selected="selected" value="-1">Inherit From Parent</option>
+				</cfif>
+				<option value="-2"<cfif $.content().getContentId() eq "00000000000000000000000000000000001"> selected="selected"</cfif>>Desktop Template</option>
 				<cfloop query="local.mobileTemplates">
 				<option value="#local.mobileTemplates.name#" <cfif local.mobileTemplates.name EQ local.getTemplateSet.template >selected="true"</cfif>>
 					#local.mobileTemplates.name#
@@ -69,8 +71,10 @@ limitations under the License.
 				<td>#local.UASettings.name#</td>
 				<td>
 					<select id="MMmobileTemplate-#i#" name="MMmobileTemplate-#i#" class="dropdown" >
-						<option selected="selected" value="-1">Inherit From Parent</option>
-						<option value="-2">Desktop Template</option>
+						<cfif $.content().getContentId() neq "00000000000000000000000000000000001">
+							<option selected="selected" value="-1">Inherit From Parent</option>
+						</cfif>
+						<option value="-2"<cfif $.content().getContentId() eq "00000000000000000000000000000000001"> selected="selected"</cfif>>Desktop Template</option>
 						<cfloop query="local.mobileTemplates">
 						<option value="#local.mobileTemplates.name#" <cfif local.mobileTemplates.name EQ local.getTemplate.template >selected="true"</cfif>>
 							#local.mobileTemplates.name#

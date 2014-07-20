@@ -43,14 +43,18 @@ limitations under the License.
 		<cfset local.template = local.searchTemplate.template />
 		<cfloop condition="NOT Len(local.template)" >
 			<!--- get the template --->
-			<cfset local.c = local.c.getParent() />
-			<cfquery name="local.searchParentTemplate" datasource="#local.dsn#" >
-				SELECT	*
-				FROM	mm_content
-				WHERE	site_id = '#$.getSite().getSiteID()#'
-				AND		content_id = '#local.c.getContentID()#'
-			</cfquery>
-			<cfset local.template = local.searchParentTemplate.template />
+			<cfif local.c.hasParent()>
+				<cfset local.c = local.c.getParent() />
+				<cfquery name="local.searchParentTemplate" datasource="#local.dsn#" >
+					SELECT	*
+					FROM	mm_content
+					WHERE	site_id = '#$.getSite().getSiteID()#'
+					AND		content_id = '#local.c.getContentID()#'
+				</cfquery>
+				<cfset local.template = local.searchParentTemplate.template />
+			<cfelse>
+				<cfset local.template = local.c.getTemplate() />
+			</cfif>
 		</cfloop>
 		
 		<!--- the 'mobiletemplate' is set --->
@@ -67,7 +71,7 @@ limitations under the License.
 							SELECT	*
 							FROM	mm_content
 							WHERE	site_id = '#$.getSite().getSiteID()#'
-							AND		content_id = '#local.c.getContentID()#'
+							AND		content_id = '#local.p.getContentID()#'
 						</cfquery>
 						<cfset local.ptemplate = local.searchPTemplate.template />
 						
